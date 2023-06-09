@@ -1,6 +1,6 @@
 'use client';
 
-import Logo from '@img/logos-solana/dark-explorer-logo.svg';
+import Logo from '@img/logos-solana/solana.svg';
 import { useClusterPath } from '@utils/url';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -21,8 +21,11 @@ export function Navbar() {
         <nav className="navbar navbar-expand-md navbar-light">
             <div className="container">
                 <Link href={homePath}>
-                    <Image alt="Solana Explorer" height={22} src={Logo} width={250} />
+                    <Image alt="Fabis Solana Tool" height={22} src={Logo} width={50} />
                 </Link>
+                <div className='h2 mb-0'>
+                    Fabi's Tool
+                </div>
 
                 <button className="navbar-toggler" type="button" onClick={() => setCollapse(value => !value)}>
                     <span className="navbar-toggler-icon"></span>
@@ -35,7 +38,7 @@ export function Navbar() {
                                 className={`nav-link${selectedLayoutSegment === null ? ' active' : ''}`}
                                 href={homePath}
                             >
-                                Cluster Stats
+                                Summary
                             </Link>
                         </li>
                         <li className="nav-item">
@@ -43,7 +46,7 @@ export function Navbar() {
                                 className={`nav-link${selectedLayoutSegment === 'supply' ? ' active' : ''}`}
                                 href={supplyPath}
                             >
-                                Supply
+                                Account
                             </Link>
                         </li>
                         <li className="nav-item">
@@ -55,7 +58,7 @@ export function Navbar() {
                                 }`}
                                 href={inspectorPath}
                             >
-                                Inspector
+                                All Accounts
                             </Link>
                         </li>
                     </ul>

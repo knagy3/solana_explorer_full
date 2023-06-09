@@ -27,7 +27,7 @@ export function SupplyCard() {
     return (
         <div className="card">
             {renderHeader()}
-
+            
             <TableCardBody>
                 <tr>
                     <td className="w-100">Total Supply (SOL)</td>

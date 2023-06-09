@@ -10,13 +10,11 @@ async function fetchVoteAccounts(
     setVoteAccounts: React.Dispatch<React.SetStateAction<VoteAccountStatus | undefined>>
 ) {
     try {
-        const connection = new Connection(url);
+        const connection = new Connection(url, 'confirmed');
         const result = await connection.getVoteAccounts();
         setVoteAccounts(result);
     } catch (error) {
-        if (cluster !== Cluster.Custom) {
-            reportError(error, { url });
-        }
+        reportError(error, { url });
     }
 }
 

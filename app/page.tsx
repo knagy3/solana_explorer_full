@@ -6,7 +6,7 @@ import { LoadingCard } from '@components/common/LoadingCard';
 import { Slot } from '@components/common/Slot';
 import { TableCardBody } from '@components/common/TableCardBody';
 import { TimestampToggle } from '@components/common/TimestampToggle';
-import { LiveTransactionStatsCard } from '@components/LiveTransactionStatsCard';
+// import { LiveTransactionStatsCard } from '@components/LiveTransactionStatsCard';
 import { StatsNotReady } from '@components/StatsNotReady';
 import { useVoteAccounts } from '@providers/accounts/vote-accounts';
 import { useCluster } from '@providers/cluster';
@@ -37,11 +37,12 @@ export default function Page() {
                 </div>
                 <StatsCardBody />
             </div>
-            <LiveTransactionStatsCard />
+            {/* <LiveTransactionStatsCard /> */}
         </div>
     );
 }
 
+// 3 box components
 function StakingComponent() {
     const { status } = useCluster();
     const supply = useSupply();

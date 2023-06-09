@@ -106,7 +106,7 @@ export enum PROGRAM_NAMES {
     OPENBOOK_DEX = 'OpenBook Dex',
 }
 
-const ALL_CLUSTERS = [Cluster.Custom, Cluster.Devnet, Cluster.Testnet, Cluster.MainnetBeta];
+const ALL_CLUSTERS = [Cluster.Metaplex, Cluster.Devnet, Cluster.Testnet, Cluster.MainnetBeta];
 
 const LIVE_CLUSTERS = [Cluster.Devnet, Cluster.Testnet, Cluster.MainnetBeta];
 

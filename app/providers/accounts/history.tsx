@@ -9,6 +9,7 @@ import {
     ParsedTransactionWithMeta,
     PublicKey,
     TransactionSignature,
+    clusterApiUrl,
 } from '@solana/web3.js';
 import { Cluster } from '@utils/cluster';
 import { reportError } from '@utils/sentry';
@@ -95,6 +96,8 @@ async function fetchParsedTransactions(url: string, transactionSignatures: strin
     const transactionMap = new Map();
     const connection = new Connection(url);
 
+    console.log('connection: ', connection)
+
     while (transactionSignatures.length > 0) {
         const signatures = transactionSignatures.splice(0, MAX_TRANSACTION_BATCH_SIZE);
         const fetched = await connection.getParsedTransactions(signatures, {
@@ -140,9 +143,7 @@ async function fetchAccountHistory(
         };
         status = FetchStatus.Fetched;
     } catch (error) {
-        if (cluster !== Cluster.Custom) {
-            reportError(error, { url });
-        }
+        reportError(error, { url });
         status = FetchStatus.FetchFailed;
     }
 
@@ -152,9 +153,7 @@ async function fetchAccountHistory(
             const signatures = history.fetched.map(signature => signature.signature).concat(additionalSignatures || []);
             transactionMap = await fetchParsedTransactions(url, signatures);
         } catch (error) {
-            if (cluster !== Cluster.Custom) {
-                reportError(error, { url });
-            }
+            reportError(error, { url });
             status = FetchStatus.FetchFailed;
         }
     }
@@ -229,13 +228,13 @@ export function useFetchAccountHistory() {
                     url,
                     {
                         before: oldest,
-                        limit: 25,
+                        limit: 5,
                     },
                     fetchTransactions,
                     additionalSignatures
                 );
             } else {
-                fetchAccountHistory(dispatch, pubkey, cluster, url, { limit: 25 }, fetchTransactions);
+                fetchAccountHistory(dispatch, pubkey, cluster, url, { limit: 5 }, fetchTransactions);
             }
         },
         [state, dispatch, cluster, url]

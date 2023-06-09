@@ -62,8 +62,8 @@ export default withSentryConfig(nextConfig,
   {
     // For all available options, see:
     // https://github.com/getsentry/sentry-webpack-plugin#options
-    org: "solana",
-    project: "explorer",
+    org: "fabi-oe",
+    project: "javascript-nextjs",
     silent: true, // Suppresses source map uploading logs during build
 
   },

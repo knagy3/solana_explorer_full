@@ -1,5 +1,5 @@
 {
-    "short_name": "Solana Explorer",
+    "short_name": "Fabis Solana Tool",
     "name": "Inspect transactions, accounts, blocks, and more on the Solana blockchain",
     "icons": [
         {
@@ -15,6 +15,6 @@
     ],
     "start_url": ".",
     "display": "standalone",
-    "theme_color": "#1dd79b",
+    "theme_color": "#2be6ff",
     "background_color": "#ffffff"
 }

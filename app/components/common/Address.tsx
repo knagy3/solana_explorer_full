@@ -87,7 +87,7 @@ export const useTokenMetadata = (useMetadata: boolean | undefined, pubkey: strin
         if (pubkey && !data) {
             programs.metadata.Metadata.getPDA(pubkey)
                 .then(pda => {
-                    const connection = new Connection(url);
+                    const connection = new Connection(url, 'confirmed');
                     programs.metadata.Metadata.load(connection, pda)
                         .then(metadata => {
                             setData(metadata.data);

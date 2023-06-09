@@ -12,11 +12,11 @@ import { PerformanceInfo, PerformanceInfoActionType, performanceInfoReducer } fr
 
 export const PERF_UPDATE_SEC = 5;
 export const SAMPLE_HISTORY_HOURS = 6;
-export const PERFORMANCE_SAMPLE_INTERVAL = 60000;
-export const TRANSACTION_COUNT_INTERVAL = 5000;
-export const EPOCH_INFO_INTERVAL = 2000;
-export const BLOCK_TIME_INTERVAL = 5000;
-export const LOADING_TIMEOUT = 10000;
+export const PERFORMANCE_SAMPLE_INTERVAL = 600000;
+export const TRANSACTION_COUNT_INTERVAL = 50000;
+export const EPOCH_INFO_INTERVAL = 20000;
+export const BLOCK_TIME_INTERVAL = 50000;
+export const LOADING_TIMEOUT = 100000;
 
 export enum ClusterStatsStatus {
     Loading,
@@ -70,9 +70,9 @@ type Props = { children: React.ReactNode };
 
 function getConnection(url: string): Connection | undefined {
     try {
-        return new Connection(url);
+        return new Connection(url, 'confirmed', {requestTimeout: 5000});
     } catch (error) {
-        /* empty */
+        console.log('Connection Error: ', error)
     }
 }
 
@@ -112,9 +112,7 @@ export function SolanaClusterStatsProvider({ children }: Props) {
                     type: DashboardInfoActionType.SetPerfSamples,
                 });
             } catch (error) {
-                if (cluster !== Cluster.Custom) {
-                    reportError(error, { url });
-                }
+                reportError(error, { url });
                 if (error instanceof Error) {
                     dispatchPerformanceInfo({
                         data: error.toString(),
@@ -140,9 +138,7 @@ export function SolanaClusterStatsProvider({ children }: Props) {
                     type: PerformanceInfoActionType.SetTransactionCount,
                 });
             } catch (error) {
-                if (cluster !== Cluster.Custom) {
-                    reportError(error, { url });
-                }
+                reportError(error, { url });
                 if (error instanceof Error) {
                     dispatchPerformanceInfo({
                         data: error.toString(),
@@ -165,9 +161,7 @@ export function SolanaClusterStatsProvider({ children }: Props) {
                     type: DashboardInfoActionType.SetEpochInfo,
                 });
             } catch (error) {
-                if (cluster !== Cluster.Custom) {
-                    reportError(error, { url });
-                }
+                reportError(error, { url });
                 if (error instanceof Error) {
                     dispatchDashboardInfo({
                         data: error.toString(),

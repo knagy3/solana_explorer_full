@@ -18,7 +18,7 @@ export namespace NftokenFetcher {
         collection: string;
         rpcUrl: string;
     }): Promise<NftokenTypes.NftInfo[]> => {
-        const connection = new Connection(rpcUrl);
+        const connection = new Connection(rpcUrl, 'confirmed');
         const accounts = await connection.getProgramAccounts(new PublicKey(NFTOKEN_ADDRESS), {
             filters: [
                 {

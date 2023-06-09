@@ -45,15 +45,16 @@ function clusterReducer(state: State, action: Action): State {
 function parseQuery(searchParams: ReadonlyURLSearchParams | null): Cluster {
     const clusterParam = searchParams?.get('cluster');
     switch (clusterParam) {
-        case 'custom':
-            return Cluster.Custom;
+        case 'metaplex':
+            return Cluster.Metaplex;
         case 'devnet':
             return Cluster.Devnet;
         case 'testnet':
             return Cluster.Testnet;
         case 'mainnet-beta':
+          return Cluster.MainnetBeta;
         default:
-            return Cluster.MainnetBeta;
+            return Cluster.Metaplex;
     }
 }
 
@@ -136,9 +137,7 @@ async function updateCluster(dispatch: Dispatch, cluster: Cluster, customUrl: st
             status: ClusterStatus.Connected,
         });
     } catch (error) {
-        if (cluster !== Cluster.Custom) {
-            reportError(error, { clusterUrl: clusterUrl(cluster, customUrl) });
-        }
+        reportError(error, { clusterUrl: clusterUrl(cluster, customUrl) });
         dispatch({
             cluster,
             customUrl,
@@ -147,16 +146,16 @@ async function updateCluster(dispatch: Dispatch, cluster: Cluster, customUrl: st
     }
 }
 
-export function useUpdateCustomUrl() {
-    const dispatch = useContext(DispatchContext);
-    if (!dispatch) {
-        throw new Error(`useUpdateCustomUrl must be used within a ClusterProvider`);
-    }
+// export function useUpdateCustomUrl() {
+//     const dispatch = useContext(DispatchContext);
+//     if (!dispatch) {
+//         throw new Error(`useUpdateCustomUrl must be used within a ClusterProvider`);
+//     }
 
-    return (customUrl: string) => {
-        updateCluster(dispatch, Cluster.Custom, customUrl);
-    };
-}
+//     return (customUrl: string) => {
+//         updateCluster(dispatch, Cluster.Custom, customUrl);
+//     };
+// }
 
 export function useCluster() {
     const context = useContext(StateContext);

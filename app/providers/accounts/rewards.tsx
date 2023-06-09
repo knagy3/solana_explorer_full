@@ -93,9 +93,7 @@ async function fetchRewards(
             const epochInfo = await connection.getEpochInfo();
             fromEpoch = epochInfo.epoch - 1;
         } catch (error) {
-            if (cluster !== Cluster.Custom) {
-                reportError(error, { url });
-            }
+            reportError(error, { url });
 
             return dispatch({
                 key: pubkey.toBase58(),
@@ -115,9 +113,7 @@ async function fetchRewards(
             const result = await connection.getInflationReward([pubkey], epoch);
             return result[0];
         } catch (error) {
-            if (cluster !== Cluster.Custom) {
-                reportError(error, { url });
-            }
+          reportError(error, { url });
         }
         return null;
     };

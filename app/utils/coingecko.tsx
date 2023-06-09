@@ -1,7 +1,7 @@
 import React from 'react';
 import useTabVisibility from 'use-tab-visibility';
 
-const PRICE_REFRESH = 10000;
+const PRICE_REFRESH = 150000; // 2mins aprox
 
 export enum CoingeckoStatus {
     Success,

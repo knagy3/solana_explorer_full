@@ -17,10 +17,6 @@ Steps to reproduce the behavior:
 3. Scroll down to '....'
 4. See error
 
-**Example Links**
-
--   [Please provide at least 1 link here](https://explorer.solana.com)
-
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 

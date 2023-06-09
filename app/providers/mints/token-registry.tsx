@@ -16,7 +16,9 @@ export function TokenRegistryProvider({ children }: ProviderProps) {
     React.useEffect(() => {
         new TokenListProvider().resolve(Strategy.Solana).then((tokens: TokenListContainer) => {
             const tokenList =
-                cluster === Cluster.Custom ? [] : tokens.filterByClusterSlug(clusterSlug(cluster)).getList();
+                cluster === Cluster.Metaplex 
+                ? tokens.filterByClusterSlug(clusterSlug(Cluster.Testnet)).getList()
+                : tokens.filterByClusterSlug(clusterSlug(cluster)).getList();
 
             setTokenRegistry(
                 tokenList.reduce((map: TokenInfoMap, item: TokenInfo) => {

@@ -106,9 +106,7 @@ export async function fetchBlock(dispatch: Dispatch, url: string, cluster: Clust
         }
     } catch (err) {
         status = FetchStatus.FetchFailed;
-        if (cluster !== Cluster.Custom) {
-            Sentry.captureException(err, { tags: { url } });
-        }
+        Sentry.captureException(err, { tags: { url } });
     }
 
     dispatch({

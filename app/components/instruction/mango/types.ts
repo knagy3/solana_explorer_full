@@ -19,7 +19,7 @@ function getAccountInfo(clusterUrl: string, publicKey: PublicKey): Promise<Accou
     if (publicKey.toBase58() in accountInfoCache) {
         return accountInfoCache[publicKey.toBase58()];
     }
-    const connection = new Connection(clusterUrl);
+    const connection = new Connection(clusterUrl, 'confirmed');
     const accountInfoPromise = connection.getAccountInfo(publicKey);
     accountInfoCache[publicKey.toBase58()] = accountInfoPromise;
     return accountInfoPromise;
@@ -318,7 +318,7 @@ export async function getSpotMarketFromSpotMarketConfig(
     clusterUrl: string,
     mangoSpotMarketConfig: SpotMarketConfig
 ): Promise<Market | undefined> {
-    const connection = new Connection(clusterUrl);
+    const connection = new Connection(clusterUrl, 'confirmed');
     const groupConfig = findGroupConfig(programId);
     if (groupConfig === undefined) {
         return;

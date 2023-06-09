@@ -21,7 +21,7 @@ import { Metadata } from 'next/types';
 export const metadata: Metadata = {
     description: 'Inspect transactions, accounts, blocks, and more on the Solana blockchain',
     manifest: '/manifest.json',
-    title: 'Explorer | Solana',
+    title: 'Fabis | Solana | Tool',
     viewport: {
         initialScale: 1,
         maximumScale: 1,

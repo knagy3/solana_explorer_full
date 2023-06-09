@@ -14,7 +14,7 @@ export function useAnchorProgram(programAddress: string, url: string): Program |
     if (cacheEntry === undefined) {
         const promise = Program.at(
             programAddress,
-            new Provider(new Connection(url), new NodeWallet(Keypair.generate()), {})
+            new Provider(new Connection(url, 'confirmed'), new NodeWallet(Keypair.generate()), {})
         )
             .then(program => {
                 cachedAnchorProgramPromises[key] = {

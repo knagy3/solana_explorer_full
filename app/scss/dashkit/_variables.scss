@@ -226,7 +226,7 @@ $caret-width: 0.25em !default;
 $font-family-base: var(--explorer-default-font) !default;
 
 $font-size-base: 0.9375rem !default; // 15px
-$font-size-sm: 0.8125rem !default; // 13px
+$font-size-sm: 0.9125rem !default; // 13px
 $font-size-lg: 1.0625rem !default; // 17px
 
 $font-weight-light: 400 !default;
@@ -240,8 +240,8 @@ $line-height-lg: 1.5 !default;
 $h1-font-size: 1.625rem !default;
 $h2-font-size: 1.25rem !default;
 $h3-font-size: 1.0625rem !default;
-$h4-font-size: 0.9375rem !default;
-$h5-font-size: 0.8125rem !default;
+$h4-font-size: 0.9975rem !default;
+$h5-font-size: 0.9125rem !default; // 13px
 $h6-font-size: 0.625rem !default;
 
 $font-sizes: (
@@ -671,7 +671,7 @@ $nav-tabs-link-active-border-width: 1px !default;
 $nav-tabs-link-margin-x: 0.75rem !default; // Margin used for X so active underline matches width of label
 $nav-tabs-link-padding-y: $card-cap-padding-y !default; // This keeps the height the same as the card header
 
-$nav-tabs-sm-font-size: 0.8125rem !default;
+$nav-tabs-sm-font-size: 0.9125rem !default;
 $nav-tabs-sm-link-margin-x: 0.5rem !default;
 
 // Navbar
