@@ -354,6 +354,7 @@ type TabComponent = {
 
 export type MoreTabs =
     | 'history'
+    | 'raffles'
     | 'tokens'
     | 'nftoken-collection-nfts'
     | 'largest'
@@ -438,6 +439,11 @@ function getTabs(pubkey: PublicKey, account: Account): TabComponent[] {
         !isNFToken &&
         (!parsedData || !(TOKEN_TABS_HIDDEN.includes(parsedData.program) || TOKEN_TABS_HIDDEN.includes(programTypeKey)))
     ) {
+        tabs.push({
+            path: 'raffles',
+            slug: 'raffles',
+            title: 'Raffles',
+        });
         tabs.push({
             path: 'tokens',
             slug: 'tokens',

@@ -72,7 +72,7 @@ export function SearchBar() {
     // appends domain lookup results to the local search state
     const domainSearch = async (options: SearchOptions[]) => {
         setLoadingSearchMessage('Looking up domain...');
-        const connection = new Connection(url, 'confirmed', {requestTimeout: 5000});
+        const connection = new Connection(url, 'confirmed');
         const searchTerm = search;
         const updatedOptions = await buildDomainOptions(connection, search, options);
         if (searchRef.current === searchTerm) {

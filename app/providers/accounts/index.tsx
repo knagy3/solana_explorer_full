@@ -36,6 +36,7 @@ import { create } from 'superstruct';
 import { HistoryProvider } from './history';
 import { RewardsProvider } from './rewards';
 import { TokensProvider } from './tokens';
+import { RafflesProvider } from './raffles';
 export { useAccountHistory } from './history';
 
 const Metadata = programs.metadata.Metadata;
@@ -175,9 +176,11 @@ export function AccountsProvider({ children }: AccountsProviderProps) {
             <DispatchContext.Provider value={dispatch}>
                 <FetchersContext.Provider value={fetchers}>
                     <TokensProvider>
-                        <HistoryProvider>
-                            <RewardsProvider>{children}</RewardsProvider>
-                        </HistoryProvider>
+                        <RafflesProvider>
+                            <HistoryProvider>
+                                <RewardsProvider>{children}</RewardsProvider>
+                            </HistoryProvider>
+                        </RafflesProvider>
                     </TokensProvider>
                 </FetchersContext.Provider>
             </DispatchContext.Provider>
@@ -284,10 +287,7 @@ async function fetchMultipleAccounts({
                 });
             }
         } catch (error) {
-            if (cluster !== Cluster.Custom) {
-                reportError(error, { url });
-            }
-
+            reportError(error, { url });
             for (const pubkey of batch) {
                 dispatch({
                     key: pubkey.toBase58(),

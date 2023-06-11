@@ -4,42 +4,62 @@ import { ErrorCard } from '@components/common/ErrorCard';
 import { LoadingCard } from '@components/common/LoadingCard';
 import { Signature } from '@components/common/Signature';
 import { Slot } from '@components/common/Slot';
-import { useAccountHistory, useFetchAccountHistory } from '@providers/accounts/history';
+import { useFetchAccountRaffles, useAccountOwnedRaffles } from '@providers/accounts/raffles';
 import { FetchStatus } from '@providers/cache';
 import { PublicKey } from '@solana/web3.js';
 import { displayTimestampUtc } from '@utils/date';
 import React, { useMemo } from 'react';
 import Moment from 'react-moment';
+import { RaffleCardFooter, RaffleCardHeader, getRaffleTransactionRows } from '../RaffleCardComponents';
 
-import { getTransactionRows, HistoryCardFooter, HistoryCardHeader } from '../HistoryCardComponents';
-
-export function TransactionHistoryCard({ address }: { address: string }) {
+export function RaffleTransactionHistoryCard({ address }: { address: string }) {
     const pubkey = useMemo(() => new PublicKey(address), [address]);
-    const history = useAccountHistory(address);
-    const fetchAccountHistory = useFetchAccountHistory();
-    const refresh = () => fetchAccountHistory(pubkey, false, true);
-    const loadMore = () => fetchAccountHistory(pubkey, false);
+    const ownedRaffles = useAccountOwnedRaffles(address);
+    const fetchAccountRaffles = useFetchAccountRaffles();
+    const refresh = () => fetchAccountRaffles(pubkey);
+    // const loadMore = () => fetchAccountRaffles(pubkey, false);
+
+    // const [showDropdown, setDropdown] = React.useState(false);
+    // const display = useQueryDisplay();
 
     const transactionRows = React.useMemo(() => {
-        if (history?.data?.fetched) 
-        {
-            return getTransactionRows(history.data.fetched);
-        }
-        return [];
-    }, [history]);
+      if (ownedRaffles?.data?.raffles) 
+      {
+          return getRaffleTransactionRows(ownedRaffles.data.raffles);
+      }
+      return [];
+    }, [ownedRaffles]);
 
+    // Fetch owned raffles
     React.useEffect(() => {
-        if (!history) {
-            refresh();
-        }
+        if (!ownedRaffles) refresh();
     }, [address]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    if (!history) {
+    if (ownedRaffles === undefined) {
         return null;
     }
 
-    if (history?.data === undefined) {
-        if (history.status === FetchStatus.Fetching) {
+    const { status } = ownedRaffles;
+    const raffles = ownedRaffles.data?.raffles;
+    const fetching = status === FetchStatus.Fetching;
+
+    if (fetching && (raffles === undefined || raffles.length === 0)) {
+      return <LoadingCard message="Loading token holdings" />;
+    } else if (raffles === undefined) {
+        return <ErrorCard retry={refresh} text="Failed to fetch token holdings" />;
+    }
+
+    if (raffles.length === 0) {
+      return <ErrorCard retry={refresh} retryText="Try Again" text={'No token holdings found'} />;
+    }
+
+    if (raffles.length > 100) {
+        return <ErrorCard text="Token holdings is not available for accounts with over 100 token accounts" />;
+    }
+
+
+    if (ownedRaffles?.data === undefined) {
+        if (ownedRaffles.status === FetchStatus.Fetching) {
             return <LoadingCard message="Loading history" />;
         }
 
@@ -48,17 +68,15 @@ export function TransactionHistoryCard({ address }: { address: string }) {
 
     const hasTimestamps = transactionRows.some(element => element.blockTime);
     const detailsList: React.ReactNode[] = transactionRows.map(
-        ({ slot, signature, blockTime, statusClass, statusText }) => {
+        ({ slot, signature, blockTime, statusClass, statusText, signatureInfo }) => {
             return (
                 <tr key={signature}>
                     <td>
                         <Signature signature={signature} link truncateChars={60} />
                     </td>
-
                     <td className="w-1">
                         <Slot slot={slot} link />
                     </td>
-
                     {hasTimestamps && (
                         <>
                             <td className="text-muted">
@@ -69,7 +87,9 @@ export function TransactionHistoryCard({ address }: { address: string }) {
                             </td>
                         </>
                     )}
-
+                    <td className="text-muted">
+                        {signatureInfo}
+                    </td>
                     <td>
                         <span className={`badge bg-${statusClass}-soft`}>{statusText}</span>
                     </td>
@@ -78,15 +98,14 @@ export function TransactionHistoryCard({ address }: { address: string }) {
         }
     );
 
-    const fetching = history.status === FetchStatus.Fetching;
     return (
         <div className="card">
-            <HistoryCardHeader fetching={fetching} refresh={() => refresh()} title="Transaction History" />
+            <RaffleCardHeader fetching={fetching} refresh={() => refresh()} title="Raffle History" />
             <div className="table-responsive mb-0">
                 <table className="table table-sm table-nowrap card-table">
                     <thead>
                         <tr>
-                            <th className="text-muted w-1">Transaction Signature</th>
+                            <th className="text-muted w-1">Raffle Signature</th>
                             <th className="text-muted w-1">Block</th>
                             {hasTimestamps && (
                                 <>
@@ -94,13 +113,14 @@ export function TransactionHistoryCard({ address }: { address: string }) {
                                     <th className="text-muted w-1">Timestamp</th>
                                 </>
                             )}
+                            <th className="text-muted">Event</th>
                             <th className="text-muted">Result</th>
                         </tr>
                     </thead>
                     <tbody className="list">{detailsList}</tbody>
                 </table>
             </div>
-            <HistoryCardFooter fetching={fetching} foundOldest={history.data.foundOldest} loadMore={() => loadMore()} />
+            <RaffleCardFooter fetching={fetching} foundOldest={false} loadMore={() => refresh()} />
         </div>
     );
 }

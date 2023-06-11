@@ -1,18 +1,19 @@
-import { ConfirmedSignatureInfo, TransactionError } from '@solana/web3.js';
+import { RaffleInfoWithPubkey } from '@/app/providers/accounts/raffles';
+// import { ConfirmedSignatureInfo, TransactionError } from '@solana/web3.js';
 import React from 'react';
 import { RefreshCw } from 'react-feather';
 
 export type TransactionRow = {
     slot: number;
     signature: string;
-    err: TransactionError | null;
+    err: null;
     blockTime: number | null | undefined;
     statusClass: string;
     statusText: string;
-    signatureInfo: ConfirmedSignatureInfo;
+    signatureInfo: string;
 };
 
-export function HistoryCardHeader({
+export function RaffleCardHeader({
     title,
     refresh,
     fetching,
@@ -41,7 +42,7 @@ export function HistoryCardHeader({
     );
 }
 
-export function HistoryCardFooter({
+export function RaffleCardFooter({
     fetching,
     foundOldest,
     loadMore,
@@ -53,7 +54,7 @@ export function HistoryCardFooter({
     return (
         <div className="card-footer">
             {foundOldest ? (
-                <div className="text-muted text-center">Fetched full history</div>
+                <div className="text-muted text-center">Fetched full Raffle</div>
             ) : (
                 <button className="btn btn-primary w-100" onClick={() => loadMore()} disabled={fetching}>
                     {fetching ? (
@@ -70,25 +71,23 @@ export function HistoryCardFooter({
     );
 }
 
-export function getTransactionRows(transactions: ConfirmedSignatureInfo[]): TransactionRow[] {
+export function getRaffleTransactionRows(raffles: RaffleInfoWithPubkey[]): TransactionRow[] {
     const transactionRows: TransactionRow[] = [];
 
-    console.log("transactions: ", transactions);
-
-    for (let i = 0; i < transactions.length; i++) {
-        const slot = transactions[i].slot;
-        const slotTransactions = [transactions[i]];
-        while (i + 1 < transactions.length) {
-            const nextSlot = transactions[i + 1].slot;
+    for (let i = 0; i < raffles.length; i++) {
+        const slot = raffles[i].info.blockId;
+        const slotTransactions = [raffles[i]];
+        while (i + 1 < raffles.length) {
+            const nextSlot = raffles[i + 1].info.blockId;
             if (nextSlot !== slot) break;
-            slotTransactions.push(transactions[++i]);
+            slotTransactions.push(raffles[++i]);
         }
 
         for (const slotTransaction of slotTransactions) 
         {
             let statusText;
             let statusClass;
-            if (slotTransaction.err) {
+            if (!slotTransaction.info.blockId) {
                 statusClass = 'warning';
                 statusText = 'Failed';
             } else {
@@ -96,10 +95,10 @@ export function getTransactionRows(transactions: ConfirmedSignatureInfo[]): Tran
                 statusText = 'Success';
             }
             transactionRows.push({
-                blockTime: slotTransaction.blockTime,
-                err: slotTransaction.err,
-                signature: slotTransaction.signature,
-                signatureInfo: slotTransaction,
+                blockTime: slotTransaction.info.blockTime,
+                err: null,
+                signature: slotTransaction.info.transactionId,
+                signatureInfo: slotTransaction.info.event,
                 slot,
                 statusClass,
                 statusText,

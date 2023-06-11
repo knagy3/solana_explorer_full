@@ -41,7 +41,7 @@ type InstructionType = {
 export function TokenHistoryCard({ address }: { address: string }) {
     const ownedTokens = useAccountOwnedTokens(address);
 
-    if (ownedTokens === undefined) {
+    if (ownedTokens === undefined ) {
         return null;
     }
 
@@ -75,7 +75,9 @@ function TokenHistoryTable({ tokens }: { tokens: TokenInfoWithPubkey[] }) {
     const [showDropdown, setDropdown] = React.useState(false);
     const filter = useQueryFilter();
 
-    const filteredTokens = React.useMemo(
+    const filteredTokens = tokens;
+
+    const filteredTokens2 = React.useMemo(
         () =>
             tokens.filter(token => {
                 if (filter === ALL_TOKENS) {
@@ -341,6 +343,7 @@ const TokenTransactionRow = React.memo(function TokenTransactionRow({
 
     const transactionWithMeta = details?.data?.transactionWithMeta;
     const instructions = transactionWithMeta?.transaction.message.instructions;
+
     if (!instructions)
         return (
             <tr key={tx.signature}>

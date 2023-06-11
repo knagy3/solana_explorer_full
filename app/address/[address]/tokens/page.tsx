@@ -18,8 +18,8 @@ export async function generateMetadata({ params: { address } }: Props): Promise<
 export default function OwnedTokensPage({ params: { address } }: Props) {
     return (
         <>
-            <OwnedTokensCard address={address} />
             <TokenHistoryCard address={address} />
+            <OwnedTokensCard address={address} />
         </>
     );
 }

@@ -15,7 +15,7 @@ import { Cluster } from '@utils/cluster';
 import { reportError } from '@utils/sentry';
 import React from 'react';
 
-const MAX_TRANSACTION_BATCH_SIZE = 10;
+const MAX_TRANSACTION_BATCH_SIZE = 55;
 
 type TransactionMap = Map<string, ParsedTransactionWithMeta>;
 
@@ -96,14 +96,23 @@ async function fetchParsedTransactions(url: string, transactionSignatures: strin
     const transactionMap = new Map();
     const connection = new Connection(url);
 
-    console.log('connection: ', connection)
-
     while (transactionSignatures.length > 0) {
         const signatures = transactionSignatures.splice(0, MAX_TRANSACTION_BATCH_SIZE);
         const fetched = await connection.getParsedTransactions(signatures, {
             maxSupportedTransactionVersion: 0,
         });
-        fetched.forEach((transactionWithMeta: ParsedTransactionWithMeta | null, index: number) => {
+
+        // console.log("parsed transactions: ", fetched);
+
+        const filteredTransactions = fetched.filter((transaction) =>
+        transaction?.transaction.message.instructions.some(
+          (instruction) => 
+            instruction.programId.toBase58() === "9ehXDD5bnhSpFVRf99veikjgq8VajtRH7e3D9aVPLqYd"
+        ));
+
+        console.log("filteredTransactions: ",filteredTransactions);
+
+        filteredTransactions.forEach((transactionWithMeta: ParsedTransactionWithMeta | null, index: number) => {
             if (transactionWithMeta !== null) {
                 transactionMap.set(signatures[index], transactionWithMeta);
             }
@@ -136,6 +145,7 @@ async function fetchAccountHistory(
     let history;
     try {
         const connection = new Connection(url);
+
         const fetched = await connection.getConfirmedSignaturesForAddress2(pubkey, options);
         history = {
             fetched,
@@ -148,6 +158,7 @@ async function fetchAccountHistory(
     }
 
     let transactionMap;
+
     if (fetchTransactions && history?.fetched) {
         try {
             const signatures = history.fetched.map(signature => signature.signature).concat(additionalSignatures || []);
@@ -211,8 +222,10 @@ export function useFetchAccountHistory() {
 
     return React.useCallback(
         (pubkey: PublicKey, fetchTransactions?: boolean, refresh?: boolean) => {
+
             const before = state.entries[pubkey.toBase58()];
-            if (!refresh && before?.data?.fetched && before.data.fetched.length > 0) {
+            if (!refresh && before?.data?.fetched && before.data.fetched.length > 0) 
+            {
                 if (before.data.foundOldest) return;
 
                 let additionalSignatures: string[] = [];
@@ -228,13 +241,19 @@ export function useFetchAccountHistory() {
                     url,
                     {
                         before: oldest,
-                        limit: 5,
+                        limit: MAX_TRANSACTION_BATCH_SIZE,
                     },
                     fetchTransactions,
                     additionalSignatures
                 );
             } else {
-                fetchAccountHistory(dispatch, pubkey, cluster, url, { limit: 5 }, fetchTransactions);
+                fetchAccountHistory(
+                  dispatch, 
+                  pubkey, 
+                  cluster, 
+                  url, 
+                  { limit: MAX_TRANSACTION_BATCH_SIZE }, 
+                  fetchTransactions);
             }
         },
         [state, dispatch, cluster, url]

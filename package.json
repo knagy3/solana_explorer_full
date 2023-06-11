@@ -14,6 +14,7 @@
         "@blockworks-foundation/mango-client": "^3.6.7",
         "@bonfida/spl-name-service": "0.1.30",
         "@cloudflare/stream-react": "^1.2.0",
+        "@hellomoon/api": "^1.16.5",
         "@metamask/jazzicon": "^2.0.0",
         "@metaplex-foundation/mpl-token-metadata": "^1.1.0",
         "@metaplex/js": "^4.12.0",
