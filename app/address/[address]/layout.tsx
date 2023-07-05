@@ -296,7 +296,7 @@ function DetailsSections({
 }
 
 function InfoSection({ account }: { account: Account }) {
-    const parsedData = account.data.parsed;
+    const parsedData = account.data?.parsed;
     const rawData = account.data.raw;
 
     if (parsedData && parsedData.program === 'bpf-upgradeable-loader') {
@@ -449,11 +449,11 @@ function getTabs(pubkey: PublicKey, account: Account): TabComponent[] {
             slug: 'tokens',
             title: 'Tokens',
         });
-        tabs.push({
-            path: 'domains',
-            slug: 'domains',
-            title: 'Domains',
-        });
+        // tabs.push({
+        //     path: 'domains',
+        //     slug: 'domains',
+        //     title: 'Domains',
+        // });
     }
 
     if (account.owner.toBase58() === ACCOUNT_COMPRESSION_ID.toBase58()) {

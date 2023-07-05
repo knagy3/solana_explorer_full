@@ -35,7 +35,7 @@ const getEthAddress = (link?: string) => {
 
 export function TokenAccountSection({ account, tokenAccount }: { account: Account; tokenAccount: TokenAccount }) {
     const { cluster } = useCluster();
-
+    console.log("TokenAccountSection: ", tokenAccount);
     try {
         switch (tokenAccount.type) {
             case 'mint': {

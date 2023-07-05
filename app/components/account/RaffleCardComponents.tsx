@@ -1,5 +1,5 @@
 import { RaffleInfoWithPubkey } from '@/app/providers/accounts/raffles';
-// import { ConfirmedSignatureInfo, TransactionError } from '@solana/web3.js';
+// import { Confirmedevent, TransactionError } from '@solana/web3.js';
 import React from 'react';
 import { RefreshCw } from 'react-feather';
 
@@ -10,7 +10,9 @@ export type TransactionRow = {
     blockTime: number | null | undefined;
     statusClass: string;
     statusText: string;
-    signatureInfo: string;
+    numberoftickets: number | null | undefined;
+    rafflePaymentAmount: number | null | undefined;
+    event: string;
 };
 
 export function RaffleCardHeader({
@@ -98,7 +100,9 @@ export function getRaffleTransactionRows(raffles: RaffleInfoWithPubkey[]): Trans
                 blockTime: slotTransaction.info.blockTime,
                 err: null,
                 signature: slotTransaction.info.transactionId,
-                signatureInfo: slotTransaction.info.event,
+                event: slotTransaction.info.event,
+                numberoftickets: slotTransaction.info.numberoftickets,
+                rafflePaymentAmount: slotTransaction.info.rafflePaymentAmount,
                 slot,
                 statusClass,
                 statusText,

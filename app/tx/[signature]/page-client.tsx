@@ -30,6 +30,7 @@ import Link from 'next/link';
 import React, { Suspense, useEffect, useState } from 'react';
 import { RefreshCw, Settings } from 'react-feather';
 import useTabVisibility from 'use-tab-visibility';
+import { Instruction } from '@project-serum/anchor';
 
 const AUTO_REFRESH_INTERVAL = 2000;
 const ZERO_CONFIRMATION_BAILOUT = 5;
@@ -193,10 +194,11 @@ function StatusCard({ signature, autoRefresh }: SignatureProps & AutoRefreshProp
         <div className="card">
             <div className="card-header align-items-center">
                 <h3 className="card-header-title">Overview</h3>
-                <Link className="btn btn-white btn-sm me-2" href={inspectPath}>
+                {/* Inspect is turned off */}
+                {/* <Link className="btn btn-white btn-sm me-2" href={inspectPath}>
                     <Settings className="align-text-top me-2" size={13} />
                     Inspect
-                </Link>
+                </Link> */}
                 {autoRefresh === AutoRefresh.Active ? (
                     <span className="spinner-grow spinner-grow-sm"></span>
                 ) : (
@@ -338,8 +340,10 @@ function DetailsSection({ signature }: SignatureProps) {
         <>
             <AccountsCard signature={signature} />
             <TokenBalancesCard signature={signature} />
-            <InstructionsSection signature={signature} />
-            <ProgramLogSection signature={signature} />
+            {/* Instruction is turned off */}
+            {/* <InstructionsSection signature={signature} /> */}
+            {/* Programlog is tudned off */}
+            {/* <ProgramLogSection signature={signature} /> */}
         </>
     );
 }
@@ -396,7 +400,7 @@ function AccountsCard({ signature }: SignatureProps) {
     return (
         <div className="card">
             <div className="card-header">
-                <h3 className="card-header-title">Account Input(s)</h3>
+                <h3 className="card-header-title">Account Input(s) / SOL Balance Change</h3>
             </div>
             <div className="table-responsive mb-0">
                 <table className="table table-sm table-nowrap card-table">

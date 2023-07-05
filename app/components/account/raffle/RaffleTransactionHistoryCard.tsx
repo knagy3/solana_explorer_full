@@ -11,6 +11,7 @@ import { displayTimestampUtc } from '@utils/date';
 import React, { useMemo } from 'react';
 import Moment from 'react-moment';
 import { RaffleCardFooter, RaffleCardHeader, getRaffleTransactionRows } from '../RaffleCardComponents';
+import { SolBalance } from '../../common/SolBalance';
 
 export function RaffleTransactionHistoryCard({ address }: { address: string }) {
     const pubkey = useMemo(() => new PublicKey(address), [address]);
@@ -57,7 +58,6 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
         return <ErrorCard text="Token holdings is not available for accounts with over 100 token accounts" />;
     }
 
-
     if (ownedRaffles?.data === undefined) {
         if (ownedRaffles.status === FetchStatus.Fetching) {
             return <LoadingCard message="Loading history" />;
@@ -68,27 +68,33 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
 
     const hasTimestamps = transactionRows.some(element => element.blockTime);
     const detailsList: React.ReactNode[] = transactionRows.map(
-        ({ slot, signature, blockTime, statusClass, statusText, signatureInfo }) => {
+        ({ signature, blockTime, statusClass, statusText, event, numberoftickets, rafflePaymentAmount }, index) => {
             return (
-                <tr key={signature}>
+                <tr key={index}>
                     <td>
                         <Signature signature={signature} link truncateChars={60} />
                     </td>
-                    <td className="w-1">
-                        <Slot slot={slot} link />
-                    </td>
                     {hasTimestamps && (
                         <>
-                            <td className="text-muted">
+                            {/* <td className="text-muted">
                                 {blockTime ? <Moment date={blockTime * 1000} fromNow /> : '---'}
-                            </td>
+                            </td> */}
                             <td className="text-muted">
                                 {blockTime ? displayTimestampUtc(blockTime * 1000, true) : '---'}
                             </td>
                         </>
                     )}
                     <td className="text-muted">
-                        {signatureInfo}
+                        {event}
+                    </td>
+                    <td className="text-lg-center">
+                        {numberoftickets ? numberoftickets : "-"}
+                    </td>
+                    <td className="text-lg-center text-uppercase">
+                        {rafflePaymentAmount  
+                          ? (<SolBalance lamports={rafflePaymentAmount} /> )
+                          : ( "-" )
+                        }
                     </td>
                     <td>
                         <span className={`badge bg-${statusClass}-soft`}>{statusText}</span>
@@ -106,14 +112,16 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
                     <thead>
                         <tr>
                             <th className="text-muted w-1">Raffle Signature</th>
-                            <th className="text-muted w-1">Block</th>
+                            {/* <th className="text-muted w-1">Block</th> */}
                             {hasTimestamps && (
                                 <>
-                                    <th className="text-muted w-1">Age</th>
+                                    {/* <th className="text-muted w-1">Age</th> */}
                                     <th className="text-muted w-1">Timestamp</th>
                                 </>
                             )}
                             <th className="text-muted">Event</th>
+                            <th className="text-muted">Number of Tickets</th>
+                            <th className="text-muted">Payment Amount</th>
                             <th className="text-muted">Result</th>
                         </tr>
                     </thead>

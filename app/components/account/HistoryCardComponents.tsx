@@ -73,7 +73,7 @@ export function HistoryCardFooter({
 export function getTransactionRows(transactions: ConfirmedSignatureInfo[]): TransactionRow[] {
     const transactionRows: TransactionRow[] = [];
 
-    console.log("transactions: ", transactions);
+    // console.log("transactions: ", transactions);
 
     for (let i = 0; i < transactions.length; i++) {
         const slot = transactions[i].slot;

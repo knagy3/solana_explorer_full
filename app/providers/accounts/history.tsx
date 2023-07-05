@@ -15,7 +15,8 @@ import { Cluster } from '@utils/cluster';
 import { reportError } from '@utils/sentry';
 import React from 'react';
 
-const MAX_TRANSACTION_BATCH_SIZE = 55;
+const MAX_TRANSACTION_BATCH_SIZE = 15;
+const PROMGRAM_ID = "9ehXDD5bnhSpFVRf99veikjgq8VajtRH7e3D9aVPLqYd";
 
 type TransactionMap = Map<string, ParsedTransactionWithMeta>;
 
@@ -107,7 +108,7 @@ async function fetchParsedTransactions(url: string, transactionSignatures: strin
         const filteredTransactions = fetched.filter((transaction) =>
         transaction?.transaction.message.instructions.some(
           (instruction) => 
-            instruction.programId.toBase58() === "9ehXDD5bnhSpFVRf99veikjgq8VajtRH7e3D9aVPLqYd"
+            instruction.programId.toBase58() === PROMGRAM_ID
         ));
 
         console.log("filteredTransactions: ",filteredTransactions);

@@ -61,12 +61,11 @@ async function fetchAccountRaffles(dispatch: Dispatch, pubkey: PublicKey, cluste
       const value  = await client.send(new FoxyRaffleEventsRequest({
         userAccount: pubkey.toBase58()
       }));
-  
-      // const filteredOutput = value.data.filter(item => item.event === 'CREATE_RAFFLE');
-        console.log("Raffles: ", value);
+        // add_prize is filtered out   
+        const filtered = value.data.filter(item => item.event !== 'ADD_PRIZE');
         data = {
             // remove slice
-            raffles: value.data.map(accountInfo => {
+            raffles: filtered.map(accountInfo => {
                 const info = create(accountInfo, RaffleAccountInfo);
                 return { info, pubkey: pubkey };
             }),

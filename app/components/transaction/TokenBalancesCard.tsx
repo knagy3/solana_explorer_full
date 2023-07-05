@@ -63,7 +63,7 @@ export function TokenBalancesCard({ signature }: SignatureProps) {
     return (
         <div className="card">
             <div className="card-header">
-                <h3 className="card-header-title">Token Balances</h3>
+                <h3 className="card-header-title">Token Balance Change</h3>
             </div>
             <div className="table-responsive mb-0">
                 <table className="table table-sm table-nowrap card-table">

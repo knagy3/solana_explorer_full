@@ -59,7 +59,11 @@ export function OwnedTokensCard({ address }: { address: string }) {
         return <ErrorCard retry={refresh} retryText="Try Again" text={'No token holdings found'} />;
     }
 
-    if (tokens.length > 100) {
+    const filteredTokens = tokens?.filter(f => f.info.tokenAmount.amount === "1")
+
+    console.log("filteredTokens: ", filteredTokens);
+
+    if (filteredTokens.length > 100) {
         return <ErrorCard text="Token holdings is not available for accounts with over 100 token accounts" />;
     }
 
@@ -73,9 +77,9 @@ export function OwnedTokensCard({ address }: { address: string }) {
                     <DisplayDropdown display={display} toggle={() => setDropdown(show => !show)} show={showDropdown} />
                 </div>
                 {display === 'detail' ? (
-                    <HoldingsDetailTable tokens={tokens} />
+                    <HoldingsDetailTable tokens={filteredTokens} />
                 ) : (
-                    <HoldingsSummaryTable tokens={tokens} />
+                    <HoldingsSummaryTable tokens={filteredTokens} />
                 )}
             </div>
         </>

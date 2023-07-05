@@ -12,6 +12,7 @@ export function UnknownAccountCard({ account }: { account: Account }) {
     const { tokenRegistry } = useTokenRegistry();
 
     const label = addressLabel(account.pubkey.toBase58(), cluster, tokenRegistry);
+    
     return (
         <div className="card">
             <div className="card-header align-items-center">
