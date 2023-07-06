@@ -1,43 +1,44 @@
 'use client';
 
 import { TableCardBody } from '@components/common/TableCardBody';
-import { StatsNotReady } from '@components/StatsNotReady';
-import { ClusterStatsStatus, PERF_UPDATE_SEC, usePerformanceInfo } from '@providers/stats/solanaClusterStats';
+// import { StatsNotReady } from '@components/StatsNotReady';
+// import { ClusterStatsStatus, PERF_UPDATE_SEC, usePerformanceInfo } from '@providers/stats/solanaClusterStats';
 import { PerformanceInfo } from '@providers/stats/solanaPerformanceInfo';
 import { PingInfo, PingRollupInfo, PingStatus, useSolanaPingInfo } from '@providers/stats/SolanaPingProvider';
 import { BarElement, CategoryScale, Chart, ChartData, ChartOptions, LinearScale, Tooltip } from 'chart.js';
 import classNames from 'classnames';
 import React from 'react';
 import { Bar } from 'react-chartjs-2';
-import CountUp from 'react-countup';
+// import CountUp from 'react-countup';
 import { RefreshCw } from 'react-feather';
+// import Page from '../page';
 
 Chart.register(BarElement, CategoryScale, LinearScale, Tooltip);
 
-type Series = 'short' | 'medium' | 'long';
+type Series = 'long' | 'medium' | 'short';
 type SetSeries = (series: Series) => void;
-const SERIES: Series[] = ['short', 'medium', 'long'];
+const SERIES: Series[] = ['long', 'medium', 'short'];
 const SERIES_INFO = {
     long: {
-        interval: '6h',
+        interval: 'all time',
         label: (index: number) => index * 12,
     },
     medium: {
-        interval: '2h',
+        interval: 'year',
         label: (index: number) => index * 4,
     },
     short: {
-        interval: '30m',
+        interval: 'month',
         label: (index: number) => index,
     },
 };
 
 export function LiveTransactionStatsCard() {
-    const [series, setSeries] = React.useState<Series>('short');
+    const [series, setSeries] = React.useState<Series>('long');
     return (
         <div className="card">
             <div className="card-header">
-                <h4 className="card-header-title">Live Transaction Stats</h4>
+                <h4 className="card-header-title">Money chart</h4>
             </div>
             <TpsCardBody series={series} setSeries={setSeries} />
             <PingStatsCardBody series={series} setSeries={setSeries} />
@@ -46,13 +47,37 @@ export function LiveTransactionStatsCard() {
 }
 
 function TpsCardBody({ series, setSeries }: { series: Series; setSeries: SetSeries }) {
-    const performanceInfo = usePerformanceInfo();
+    // const performanceInfo = usePerformanceInfo();
 
-    if (performanceInfo.status !== ClusterStatsStatus.Ready) {
-        return <StatsNotReady error={performanceInfo.status === ClusterStatsStatus.Error} />;
-    }
+    // if (performanceInfo.status !== ClusterStatsStatus.Ready) {
+    //     return <StatsNotReady error={performanceInfo.status === ClusterStatsStatus.Error} />;
+    // }
+    const data = {
+      avgTps: 3673.733333333333,
+      historyMaxTps: 4674,
+      perfHistory: {
+        long: [
+          227, 1099, 1218, 1149, 1136, 1391, 1137, 1193, 1186, 1161, 
+          1250, 1877, 2154, 2132, 2112, 2354, 2373, 2330, 2227, 2087, 
+          2239, 2900, 3154, 3174, 3136, 3324, 3216, 4052, 4284
+        ],
+        medium: [
+          227, 1099, 1218, 1149, 1136, 1391, 1137, 1193, 1186, 1161, 
+          1250, 1877, 2154, 2132, 2112, 2354, 2373, 2330, 2227, 2087, 
+          2239, 2900, 3154, 3174, 3136, 3324, 3216, 4052, 4284
+        ],
+        short: [
+          3125, 3388, 3312, 3417, 3610, 3156, 3232, 3740, 4025, 4095, 
+          3054, 3802, 4068, 4661, 4200, 4171, 4354, 4217, 4531, 4619, 
+          3892, 4390, 4457, 4333, 4100, 4633, 4463, 4410, 4674
+        ]
+      },
+      status: 1,
+      transactionCount: 194592758926
+    };
 
-    return <TpsBarChart performanceInfo={performanceInfo} series={series} setSeries={setSeries} />;
+    // const performanceInfo = usePerformanceInfo();
+    return <TpsBarChart performanceInfo={data} series={series} setSeries={setSeries} />;
 }
 
 const TPS_CHART_OPTIONS = (historyMaxTps: number): ChartOptions<'bar'> => {
@@ -97,7 +122,7 @@ const TPS_CHART_OPTIONS = (historyMaxTps: number): ChartOptions<'bar'> => {
                         const { label, raw } = tooltipModel.dataPoints[0];
                         const tooltipContent = tooltipEl.querySelector('div');
                         if (tooltipContent) {
-                            let innerHtml = `<div class="value">${raw} TPS</div>`;
+                            let innerHtml = `<div class="value">${raw}</div>`;
                             innerHtml += `<div class="label">${label}</div>`;
                             tooltipContent.innerHTML = innerHtml;
                         }
@@ -108,8 +133,8 @@ const TPS_CHART_OPTIONS = (historyMaxTps: number): ChartOptions<'bar'> => {
                     // Display, position, and set styles for font
                     tooltipEl.style.opacity = '1';
                     tooltipEl.style.position = 'absolute';
-                    tooltipEl.style.left = position.left + window.pageXOffset + tooltipModel.caretX + 'px';
-                    tooltipEl.style.top = position.top + window.pageYOffset + tooltipModel.caretY + 'px';
+                    tooltipEl.style.left = position.left + window.scrollX + tooltipModel.caretX + 'px';
+                    tooltipEl.style.top = position.top + window.scrollY + tooltipModel.caretY + 'px';
                     tooltipEl.style.pointerEvents = 'none';
                 },
                 intersect: false,
@@ -151,10 +176,11 @@ type TpsBarChartProps = {
     series: Series;
     setSeries: SetSeries;
 };
-function TpsBarChart({ performanceInfo, series, setSeries }: TpsBarChartProps) {
-    const { perfHistory, avgTps, historyMaxTps } = performanceInfo;
-    const averageTps = Math.round(avgTps).toLocaleString('en-US');
-    const transactionCount = <AnimatedTransactionCount info={performanceInfo} />;
+function TpsBarChart({  performanceInfo, series, setSeries }: TpsBarChartProps) {
+    // const { perfHistory, avgTps, historyMaxTps } = performanceInfo;
+    // const averageTps = Math.round(avgTps).toLocaleString('en-US');
+    // const transactionCount = <AnimatedTransactionCount info={performanceInfo} />;
+    const { perfHistory, historyMaxTps } = performanceInfo;
     const seriesData = perfHistory[series];
     const chartOptions = React.useMemo<ChartOptions<'bar'>>(() => TPS_CHART_OPTIONS(historyMaxTps), [historyMaxTps]);
 
@@ -162,36 +188,36 @@ function TpsBarChart({ performanceInfo, series, setSeries }: TpsBarChartProps) {
     const chartData: ChartData<'bar'> = {
         datasets: [
             {
-                backgroundColor: '#00D192',
+                backgroundColor: '#fa62fc',
                 borderWidth: 0,
                 data: seriesData.map(val => val || 0),
-                hoverBackgroundColor: '#00D192',
+                hoverBackgroundColor: '#2be6ff',
             },
         ],
         labels: seriesData.map((val, i) => {
-            return `${SERIES_INFO[series].label(seriesLength - i)}min ago`;
+            return `${SERIES_INFO[series].label(seriesLength - i)}`;
         }),
     };
 
     return (
         <>
-            <TableCardBody>
+            {/* <TableCardBody>
                 <tr>
-                    <td className="w-100">Transaction count</td>
-                    <td className="text-lg-end font-monospace">{transactionCount} </td>
+                    <td className="w-100">Dunno</td>
+                    <td className="text-lg-end font-monospace"> 100 </td>
                 </tr>
                 <tr>
-                    <td className="w-100">Transactions per second (TPS)</td>
-                    <td className="text-lg-end font-monospace">{averageTps} </td>
+                    <td className="w-100">Still dunno</td>
+                    <td className="text-lg-end font-monospace">1000 </td>
                 </tr>
-            </TableCardBody>
+            </TableCardBody> */}
 
             <hr className="my-0" />
 
             <div className="card-body py-3">
                 <div className="align-box-row align-items-start justify-content-between">
                     <div className="d-flex justify-content-between w-100">
-                        <span className="mb-0 font-size-sm">TPS history</span>
+                        <span className="mb-0 font-size-sm"></span>
 
                         <div className="font-size-sm">
                             {SERIES.map(key => (
@@ -219,51 +245,51 @@ function TpsBarChart({ performanceInfo, series, setSeries }: TpsBarChartProps) {
     );
 }
 
-function AnimatedTransactionCount({ info }: { info: PerformanceInfo }) {
-    const txCountRef = React.useRef(0);
-    const countUpRef = React.useRef({ lastUpdate: 0, period: 0, start: 0 });
-    const countUp = countUpRef.current;
+// function AnimatedTransactionCount({ info }: { info: PerformanceInfo }) {
+//     const txCountRef = React.useRef(0);
+//     const countUpRef = React.useRef({ lastUpdate: 0, period: 0, start: 0 });
+//     const countUp = countUpRef.current;
 
-    const { transactionCount: txCount, avgTps } = info;
+//     const { transactionCount: txCount, avgTps } = info;
 
-    // Track last tx count to reset count up options
-    if (txCount !== txCountRef.current) {
-        if (countUp.lastUpdate > 0) {
-            // Since we overshoot below, calculate the elapsed value
-            // and start from there.
-            const elapsed = Date.now() - countUp.lastUpdate;
-            const elapsedPeriods = elapsed / (PERF_UPDATE_SEC * 1000);
-            countUp.start = Math.floor(countUp.start + elapsedPeriods * countUp.period);
+//     // Track last tx count to reset count up options
+//     if (txCount !== txCountRef.current) {
+//         if (countUp.lastUpdate > 0) {
+//             // Since we overshoot below, calculate the elapsed value
+//             // and start from there.
+//             const elapsed = Date.now() - countUp.lastUpdate;
+//             const elapsedPeriods = elapsed / (PERF_UPDATE_SEC * 1000);
+//             countUp.start = Math.floor(countUp.start + elapsedPeriods * countUp.period);
 
-            // if counter gets ahead of actual count, just hold for a bit
-            // until txCount catches up (this will sometimes happen when a tab is
-            // sent to the background and/or connection drops)
-            countUp.period = Math.max(txCount - countUp.start, 1);
-        } else {
-            // Since this is the first tx count value, estimate the previous
-            // tx count in order to have a starting point for our animation
-            countUp.period = PERF_UPDATE_SEC * avgTps;
-            countUp.start = txCount - countUp.period;
-        }
-        countUp.lastUpdate = Date.now();
-        txCountRef.current = txCount;
-    }
+//             // if counter gets ahead of actual count, just hold for a bit
+//             // until txCount catches up (this will sometimes happen when a tab is
+//             // sent to the background and/or connection drops)
+//             countUp.period = Math.max(txCount - countUp.start, 1);
+//         } else {
+//             // Since this is the first tx count value, estimate the previous
+//             // tx count in order to have a starting point for our animation
+//             countUp.period = PERF_UPDATE_SEC * avgTps;
+//             countUp.start = txCount - countUp.period;
+//         }
+//         countUp.lastUpdate = Date.now();
+//         txCountRef.current = txCount;
+//     }
 
-    // Overshoot the target tx count in case the next update is delayed
-    const COUNT_PERIODS = 3;
-    const countUpEnd = countUp.start + COUNT_PERIODS * countUp.period;
-    return (
-        <CountUp
-            start={countUp.start}
-            end={countUpEnd}
-            duration={PERF_UPDATE_SEC * COUNT_PERIODS}
-            delay={0}
-            useEasing={false}
-            preserveValue={true}
-            separator=","
-        />
-    );
-}
+//     // Overshoot the target tx count in case the next update is delayed
+//     const COUNT_PERIODS = 3;
+//     const countUpEnd = countUp.start + COUNT_PERIODS * countUp.period;
+//     return (
+//         <CountUp
+//             start={countUp.start}
+//             end={countUpEnd}
+//             duration={PERF_UPDATE_SEC * COUNT_PERIODS}
+//             delay={0}
+//             useEasing={false}
+//             preserveValue={true}
+//             separator=","
+//         />
+//     );
+// }
 
 function PingStatsCardBody({ series, setSeries }: { series: Series; setSeries: SetSeries }) {
     const pingInfo = useSolanaPingInfo();
@@ -354,8 +380,8 @@ const PING_CHART_OPTIONS: ChartOptions<'bar'> = {
                 // Display, position, and set styles for font
                 tooltipEl.style.opacity = '1';
                 tooltipEl.style.position = 'absolute';
-                tooltipEl.style.left = position.left + window.pageXOffset + tooltipModel.caretX + 'px';
-                tooltipEl.style.top = position.top + window.pageYOffset + tooltipModel.caretY + 'px';
+                tooltipEl.style.left = position.left + window.scrollX + tooltipModel.caretX + 'px';
+                tooltipEl.style.top = position.top + window.scrollY + tooltipModel.caretY + 'px';
                 tooltipEl.style.pointerEvents = 'none';
             },
             intersect: false,

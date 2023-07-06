@@ -8,10 +8,86 @@ import { useFetchAccountRaffles, useAccountOwnedRaffles } from '@providers/accou
 import { FetchStatus } from '@providers/cache';
 import { PublicKey } from '@solana/web3.js';
 import { displayTimestampUtc } from '@utils/date';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import Moment from 'react-moment';
 import { RaffleCardFooter, RaffleCardHeader, getRaffleTransactionRows } from '../RaffleCardComponents';
 import { SolBalance } from '../../common/SolBalance';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { ChevronDown } from 'react-feather';
+import Link from 'next/link';
+
+const ALL_FILTERS = '';
+
+const useQueryFilter = (): string => {
+  const searchParams = useSearchParams();
+  const filter = searchParams?.get('filter');
+  return filter || '';
+};
+
+type FilterProps = {
+  filter: string;
+  toggle: () => void;
+  show: boolean;
+  events: string[];
+};
+
+const FilterDropdown = ({ filter, toggle, show, events }: FilterProps) => {
+  // const { cluster } = useCluster();
+  // const { tokenRegistry } = useTokenRegistry();
+  const currentSearchParams = useSearchParams();
+  const currentPathname = usePathname();
+  const buildLocation = useCallback(
+      (filter: string) => {
+          const params = new URLSearchParams(currentSearchParams?.toString());
+          if (filter === ALL_FILTERS) {
+              params.delete('filter');
+          } else {
+              params.set('filter', filter);
+          }
+          const nextQueryString = params.toString();
+          return `${currentPathname}${nextQueryString ? `?${nextQueryString}` : ''}`;
+      },
+      [currentPathname, currentSearchParams]
+  );
+
+  const filterOptions: string[] = [ALL_FILTERS];
+  const nameLookup: Map<string, string> = new Map();
+
+  events.forEach(event => {
+      const address = event.toLowerCase();
+      if (!nameLookup.has(address)) {
+          filterOptions.push(address);
+          nameLookup.set(address, event);
+      }
+  });
+
+  return (
+      <div className="dropdown me-2">
+          <small className="me-2">Filter: </small>
+          <button className="btn btn-white btn-sm " type="button" onClick={toggle}>
+              {filter === ALL_FILTERS ? 'All Filters' : nameLookup.get(filter)}{' '}
+              <ChevronDown size={15} className="align-text-top" />
+          </button>
+          <div className={`token-filter dropdown-menu-end dropdown-menu${show ? ' show' : ''}`}>
+              {filterOptions.map(filterOption => {
+                  return (
+                      <Link
+                          key={filterOption}
+                          href={buildLocation(filterOption)}
+                          className={`dropdown-item${filterOption === filter ? ' active' : ''}`}
+                          onClick={toggle}
+                      >
+                          {filterOption === ALL_FILTERS
+                              ? 'All Events'
+                              : filterOption
+                          }
+                      </Link>
+                  );
+              })}
+          </div>
+      </div>
+  );
+};
 
 export function RaffleTransactionHistoryCard({ address }: { address: string }) {
     const pubkey = useMemo(() => new PublicKey(address), [address]);
@@ -23,6 +99,10 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
     // const [showDropdown, setDropdown] = React.useState(false);
     // const display = useQueryDisplay();
 
+    const [showDropdown, setDropdown] = React.useState(false);
+    const filter = useQueryFilter();
+    const events = ['BUY_TICKETS', 'CANCEL_RAFFLE', 'CREATE_RAFFLE', 'CLAIM_PRIZE'];
+
     const transactionRows = React.useMemo(() => {
       if (ownedRaffles?.data?.raffles) 
       {
@@ -30,6 +110,18 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
       }
       return [];
     }, [ownedRaffles]);
+
+    const filteredTransactionRows = React.useMemo(
+      () =>
+       transactionRows.filter(transactionRow => {
+              if (filter === ALL_FILTERS) {
+                  return true;
+              }
+              return transactionRow.event.toLowerCase() === filter;
+          }),
+      [filter, transactionRows]
+    );
+
 
     // Fetch owned raffles
     React.useEffect(() => {
@@ -66,13 +158,13 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
         return <ErrorCard retry={refresh} text="Failed to fetch transaction history" />;
     }
 
-    const hasTimestamps = transactionRows.some(element => element.blockTime);
-    const detailsList: React.ReactNode[] = transactionRows.map(
+    const hasTimestamps = filteredTransactionRows.some(element => element.blockTime);
+    const detailsList: React.ReactNode[] = filteredTransactionRows.map(
         ({ signature, blockTime, statusClass, statusText, event, numberoftickets, rafflePaymentAmount }, index) => {
             return (
                 <tr key={index}>
                     <td>
-                        <Signature signature={signature} link truncateChars={60} />
+                        <Signature signature={signature} link truncateChars={30} />
                     </td>
                     {hasTimestamps && (
                         <>
@@ -106,7 +198,17 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
 
     return (
         <div className="card">
-            <RaffleCardHeader fetching={fetching} refresh={() => refresh()} title="Raffle History" />
+            <div className="card-header align-items-center">
+                <h3 className="card-header-title">Raffle History</h3>
+                <FilterDropdown
+                    filter={filter}
+                    toggle={() => setDropdown(show => !show)}
+                    show={showDropdown}
+                    events={events}
+                ></FilterDropdown>
+                <RaffleCardHeader fetching={fetching} refresh={() => refresh()} title="" />
+            </div>
+
             <div className="table-responsive mb-0">
                 <table className="table table-sm table-nowrap card-table">
                     <thead>

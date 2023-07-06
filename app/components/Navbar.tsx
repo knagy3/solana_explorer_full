@@ -56,7 +56,8 @@ export function Navbar() {
                                         ? ' active'
                                         : ''
                                 }`}
-                                href={inspectorPath}
+                                href={"#"}
+                                // href={inspectorPath}
                             >
                                 All Accounts
                             </Link>

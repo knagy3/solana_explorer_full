@@ -75,9 +75,7 @@ function TokenHistoryTable({ tokens }: { tokens: TokenInfoWithPubkey[] }) {
     const [showDropdown, setDropdown] = React.useState(false);
     const filter = useQueryFilter();
 
-    const filteredTokens = tokens;
-
-    const filteredTokens2 = React.useMemo(
+    const filteredTokens = React.useMemo(
         () =>
             tokens.filter(token => {
                 if (filter === ALL_TOKENS) {
@@ -289,7 +287,7 @@ const FilterDropdown = ({ filter, toggle, show, tokens }: FilterProps) => {
 
     return (
         <div className="dropdown me-2">
-            <small className="me-2">Filter:</small>
+            <small className="me-2">Filter: </small>
             <button className="btn btn-white btn-sm " type="button" onClick={toggle}>
                 {filter === ALL_TOKENS ? 'All Tokens' : nameLookup.get(filter)}{' '}
                 <ChevronDown size={15} className="align-text-top" />
@@ -365,7 +363,7 @@ const TokenTransactionRow = React.memo(function TokenTransactionRow({
                 </td>
 
                 <td>
-                    <Signature signature={tx.signature} link />
+                    <Signature signature={tx.signature} link truncateChars={30}/>
                 </td>
             </tr>
         );
@@ -469,7 +467,7 @@ const TokenTransactionRow = React.memo(function TokenTransactionRow({
                         </td>
 
                         <td className="forced-truncate">
-                            <Signature signature={tx.signature} link truncate />
+                            <Signature signature={tx.signature} link truncateChars={30} />
                         </td>
                     </tr>
                 );

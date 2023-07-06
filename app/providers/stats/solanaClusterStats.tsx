@@ -28,9 +28,9 @@ const initialPerformanceInfo: PerformanceInfo = {
     avgTps: 0,
     historyMaxTps: 0,
     perfHistory: {
-        long: [],
-        medium: [],
         short: [],
+        medium: [],
+        long: [],
     },
     status: ClusterStatsStatus.Loading,
     transactionCount: 0,
@@ -70,7 +70,7 @@ type Props = { children: React.ReactNode };
 
 function getConnection(url: string): Connection | undefined {
     try {
-        return new Connection(url, 'confirmed', {requestTimeout: 5000});
+        return new Connection(url, 'confirmed');
     } catch (error) {
         console.log('Connection Error: ', error)
     }

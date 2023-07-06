@@ -6,7 +6,7 @@ import { LoadingCard } from '@components/common/LoadingCard';
 import { Slot } from '@components/common/Slot';
 import { TableCardBody } from '@components/common/TableCardBody';
 import { TimestampToggle } from '@components/common/TimestampToggle';
-// import { LiveTransactionStatsCard } from '@components/LiveTransactionStatsCard';
+import { LiveTransactionStatsCard } from '@components/LiveTransactionStatsCard';
 import { StatsNotReady } from '@components/StatsNotReady';
 import { useVoteAccounts } from '@providers/accounts/vote-accounts';
 import { useCluster } from '@providers/cluster';
@@ -31,13 +31,13 @@ export default function Page() {
                 <div className="card-header">
                     <div className="row align-items-center">
                         <div className="col">
-                            <h4 className="card-header-title">Live Cluster Stats</h4>
+                            <h4 className="card-header-title">Details</h4>
                         </div>
                     </div>
                 </div>
                 <StatsCardBody />
             </div>
-            {/* <LiveTransactionStatsCard /> */}
+            <LiveTransactionStatsCard />
         </div>
     );
 }
@@ -101,13 +101,12 @@ function StakingComponent() {
             <div className="col-12 col-lg-4 col-xl">
                 <div className="card">
                     <div className="card-body">
-                        <h4>Circulating Supply</h4>
+                        <h4>All money</h4>
                         <h1>
-                            <em>{displayLamports(supply.circulating)}</em> /{' '}
-                            <small>{displayLamports(supply.total)}</small>
+                            <em>{displayLamports(supply.circulating)}</em> Ft
                         </h1>
                         <h5>
-                            <em>{circulatingPercentage}%</em> is circulating
+                            Overall profit: <em>{circulatingPercentage}%</em> 
                         </h5>
                     </div>
                 </div>
@@ -115,7 +114,7 @@ function StakingComponent() {
             <div className="col-12 col-lg-4 col-xl">
                 <div className="card">
                     <div className="card-body">
-                        <h4>Active Stake</h4>
+                        <h4>Rafffle winning rate</h4>
                         {activeStake && (
                             <h1>
                                 <em>{displayLamports(activeStake)}</em> / <small>{displayLamports(supply.total)}</small>
@@ -123,7 +122,7 @@ function StakingComponent() {
                         )}
                         {delinquentStakePercentage && (
                             <h5>
-                                Delinquent stake: <em>{delinquentStakePercentage}%</em>
+                                Daily profit: <em>{delinquentStakePercentage}%</em>
                             </h5>
                         )}
                     </div>
@@ -213,48 +212,35 @@ function StatsCardBody() {
     return (
         <TableCardBody>
             <tr>
-                <td className="w-100">Slot</td>
+                <td className="w-100">Number of all accounts</td>
                 <td className="text-lg-end font-monospace">
-                    <Slot slot={absoluteSlot} link />
+                    {/* <Slot slot={absoluteSlot} link /> */}
+                    54
                 </td>
             </tr>
-            {blockHeight !== undefined && (
+            {/* {blockHeight !== undefined && (
                 <tr>
                     <td className="w-100">Block height</td>
                     <td className="text-lg-end font-monospace">
                         <Slot slot={blockHeight} />
                     </td>
                 </tr>
-            )}
-            {blockTime && (
+            )} */}
+            {/* {blockTime && (
                 <tr>
                     <td className="w-100">Cluster time</td>
                     <td className="text-lg-end font-monospace">
                         <TimestampToggle unixTimestamp={blockTime}></TimestampToggle>
                     </td>
                 </tr>
-            )}
+            )} */}
             <tr>
-                <td className="w-100">Slot time (1min average)</td>
-                <td className="text-lg-end font-monospace">{averageSlotTime}ms</td>
+                <td className="w-100">Number of active raffles</td>
+                <td className="text-lg-end font-monospace">8</td>
             </tr>
             <tr>
-                <td className="w-100">Slot time (1hr average)</td>
-                <td className="text-lg-end font-monospace">{hourlySlotTime}ms</td>
-            </tr>
-            <tr>
-                <td className="w-100">Epoch</td>
-                <td className="text-lg-end font-monospace">
-                    <Epoch epoch={epochInfo.epoch} link />
-                </td>
-            </tr>
-            <tr>
-                <td className="w-100">Epoch progress</td>
-                <td className="text-lg-end font-monospace">{epochProgress}</td>
-            </tr>
-            <tr>
-                <td className="w-100">Epoch time remaining (approx.)</td>
-                <td className="text-lg-end font-monospace">~{epochTimeRemaining}</td>
+                <td className="w-100">Time since last winning</td>
+                <td className="text-lg-end font-monospace">{hourlySlotTime} min</td>
             </tr>
         </TableCardBody>
     );

@@ -5,6 +5,8 @@ export const metadata = {
     title: `Supply Overview | Solana`,
 };
 
-export default function SupplyPage() {
-    return <SupplyPageClient />;
+export default function SupplyPage() 
+{
+    // return <SupplyPageClient />
+    return <></>
 }
