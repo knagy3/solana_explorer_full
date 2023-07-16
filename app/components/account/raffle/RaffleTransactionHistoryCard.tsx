@@ -3,18 +3,19 @@
 import { ErrorCard } from '@components/common/ErrorCard';
 import { LoadingCard } from '@components/common/LoadingCard';
 import { Signature } from '@components/common/Signature';
-import { Slot } from '@components/common/Slot';
+// import { Slot } from '@components/common/Slot';
 import { useFetchAccountRaffles, useAccountOwnedRaffles } from '@providers/accounts/raffles';
 import { FetchStatus } from '@providers/cache';
 import { PublicKey } from '@solana/web3.js';
 import { displayTimestampUtc } from '@utils/date';
 import React, { useCallback, useMemo } from 'react';
-import Moment from 'react-moment';
+// import Moment from 'react-moment';
 import { RaffleCardFooter, RaffleCardHeader, getRaffleTransactionRows } from '../RaffleCardComponents';
 import { SolBalance } from '../../common/SolBalance';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { ChevronDown } from 'react-feather';
 import Link from 'next/link';
+import { RaffleAccount } from '../../../validators/accounts/raffle';
 
 const ALL_FILTERS = '';
 
@@ -101,7 +102,7 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
 
     const [showDropdown, setDropdown] = React.useState(false);
     const filter = useQueryFilter();
-    const events = ['BUY_TICKETS', 'CANCEL_RAFFLE', 'CREATE_RAFFLE', 'CLAIM_PRIZE'];
+    const events = ['BUY_TICKETS', 'CREATE_RAFFLE', 'CANCEL_RAFFLE', 'COLLECT_PROCEEDS', 'CLAIM_PRIZE', 'ADD_PRIZE'];
 
     const transactionRows = React.useMemo(() => {
       if (ownedRaffles?.data?.raffles) 
@@ -114,7 +115,8 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
     const filteredTransactionRows = React.useMemo(
       () =>
        transactionRows.filter(transactionRow => {
-              if (filter === ALL_FILTERS) {
+              if (filter === ALL_FILTERS) 
+              {
                   return true;
               }
               return transactionRow.event.toLowerCase() === filter;
@@ -160,11 +162,17 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
 
     const hasTimestamps = filteredTransactionRows.some(element => element.blockTime);
     const detailsList: React.ReactNode[] = filteredTransactionRows.map(
-        ({ signature, blockTime, statusClass, statusText, event, numberoftickets, rafflePaymentAmount }, index) => {
+        ({ signature, blockTime, statusClass, statusText, event, numberoftickets, rafflePaymentAmount, raffleAccount, pricePerTicket, prizeMint }, index) => {
             return (
                 <tr key={index}>
                     <td>
-                        <Signature signature={signature} link truncateChars={30} />
+                        <Signature signature={signature} link truncateChars={20} />
+                    </td>
+                    <td>
+                        {raffleAccount  
+                          ? (<Signature signature={raffleAccount} link truncateChars={20} /> )
+                          : ( "-" )
+                        }
                     </td>
                     {hasTimestamps && (
                         <>
@@ -179,12 +187,24 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
                     <td className="text-muted">
                         {event}
                     </td>
+                    <td className="text-lg-center text-uppercase">
+                        {pricePerTicket  
+                          ? (<SolBalance lamports={pricePerTicket} /> )
+                          : ( "-" )
+                        }
+                    </td>
                     <td className="text-lg-center">
                         {numberoftickets ? numberoftickets : "-"}
                     </td>
                     <td className="text-lg-center text-uppercase">
                         {rafflePaymentAmount  
                           ? (<SolBalance lamports={rafflePaymentAmount} /> )
+                          : ( "-" )
+                        }
+                    </td>
+                    <td>
+                        {prizeMint  
+                          ? (<Signature signature={prizeMint} link truncateChars={20} /> )
                           : ( "-" )
                         }
                     </td>
@@ -213,6 +233,7 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
                 <table className="table table-sm table-nowrap card-table">
                     <thead>
                         <tr>
+                            <th className="text-muted w-1">Transaction Signature</th>
                             <th className="text-muted w-1">Raffle Signature</th>
                             {/* <th className="text-muted w-1">Block</th> */}
                             {hasTimestamps && (
@@ -222,8 +243,10 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
                                 </>
                             )}
                             <th className="text-muted">Event</th>
+                            <th className="text-muted">Price Per Tickets</th>
                             <th className="text-muted">Number of Tickets</th>
                             <th className="text-muted">Payment Amount</th>
+                            <th className="text-muted">NFT</th>
                             <th className="text-muted">Result</th>
                         </tr>
                     </thead>

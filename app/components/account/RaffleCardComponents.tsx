@@ -6,6 +6,9 @@ import { RefreshCw } from 'react-feather';
 export type TransactionRow = {
     slot: number;
     signature: string;
+    raffleAccount: string | null;
+    pricePerTicket: number | null | undefined;
+    prizeMint: string | null;
     err: null;
     blockTime: number | null | undefined;
     statusClass: string;
@@ -97,6 +100,9 @@ export function getRaffleTransactionRows(raffles: RaffleInfoWithPubkey[]): Trans
                 statusText = 'Success';
             }
             transactionRows.push({
+                raffleAccount: slotTransaction.info.raffleAccount,
+                pricePerTicket: slotTransaction.info.pricePerTicket,
+                prizeMint: slotTransaction.info.prizeMint,
                 blockTime: slotTransaction.info.blockTime,
                 err: null,
                 signature: slotTransaction.info.transactionId,

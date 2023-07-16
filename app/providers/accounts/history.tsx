@@ -111,7 +111,7 @@ async function fetchParsedTransactions(url: string, transactionSignatures: strin
             instruction.programId.toBase58() === PROMGRAM_ID
         ));
 
-        console.log("filteredTransactions: ",filteredTransactions);
+        // console.log("filteredTransactions: ",filteredTransactions);
 
         filteredTransactions.forEach((transactionWithMeta: ParsedTransactionWithMeta | null, index: number) => {
             if (transactionWithMeta !== null) {
@@ -148,6 +148,7 @@ async function fetchAccountHistory(
         const connection = new Connection(url);
 
         const fetched = await connection.getConfirmedSignaturesForAddress2(pubkey, options);
+        // console.log("ConfirmedSignaturesForAddress: ", fetched);
         history = {
             fetched,
             foundOldest: fetched.length < options.limit,
@@ -227,6 +228,7 @@ export function useFetchAccountHistory() {
             const before = state.entries[pubkey.toBase58()];
             if (!refresh && before?.data?.fetched && before.data.fetched.length > 0) 
             {
+                console.log("HELLLO")
                 if (before.data.foundOldest) return;
 
                 let additionalSignatures: string[] = [];
@@ -253,7 +255,8 @@ export function useFetchAccountHistory() {
                   pubkey, 
                   cluster, 
                   url, 
-                  { limit: MAX_TRANSACTION_BATCH_SIZE }, 
+                  { 
+                    limit: MAX_TRANSACTION_BATCH_SIZE }, 
                   fetchTransactions);
             }
         },

@@ -31,7 +31,7 @@ export default function Page() {
                 <div className="card-header">
                     <div className="row align-items-center">
                         <div className="col">
-                            <h4 className="card-header-title">Details</h4>
+                            <h4 className="card-header-title">Statistics</h4>
                         </div>
                     </div>
                 </div>

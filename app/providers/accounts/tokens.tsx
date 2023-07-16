@@ -59,7 +59,6 @@ async function fetchAccountTokens(dispatch: Dispatch, pubkey: PublicKey, cluster
         const { value } = await new Connection(url).getParsedTokenAccountsByOwner(pubkey, {
             programId: TOKEN_PROGRAM_ID,
         });
-        console.log("value:", value);
         data = {
             // remove slice
 
@@ -69,7 +68,6 @@ async function fetchAccountTokens(dispatch: Dispatch, pubkey: PublicKey, cluster
                 return { info, pubkey: accountInfo.pubkey };
             }),
         };
-        console.log("data:", data);
         status = FetchStatus.Fetched;
     } catch (error) {
         reportError(error, { url });

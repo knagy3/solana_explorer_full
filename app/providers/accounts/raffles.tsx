@@ -10,6 +10,7 @@ import { RaffleAccountInfo } from '@validators/accounts/raffle';
 import React from 'react';
 import { create } from 'superstruct';
 import { RestClient, FoxyRaffleEventsRequest } from "@hellomoon/api";
+import { valueEventAriaMessage } from 'react-select/src/accessibility';
 
 export const MOON_CLIENT_ID = "cc2bdbaf-640d-455e-8094-4adbe147fc3d";
 
@@ -61,16 +62,23 @@ async function fetchAccountRaffles(dispatch: Dispatch, pubkey: PublicKey, cluste
       const value  = await client.send(new FoxyRaffleEventsRequest({
         userAccount: pubkey.toBase58()
       }));
-        // add_prize is filtered out   
-        const filtered = value.data.filter(item => item.event !== 'ADD_PRIZE');
-        data = {
-            // remove slice
-            raffles: filtered.map(accountInfo => {
-                const info = create(accountInfo, RaffleAccountInfo);
-                return { info, pubkey: pubkey };
-            }),
-        };
-        status = FetchStatus.Fetched;
+
+      const alma = await client.send(new FoxyRaffleEventsRequest({
+        prizeMint: "8j5opb6jF6Kc3ZS8uDnsbZNQRKxg7QMRBTVb6wxANcJi"
+      }));
+
+      // add_prize is filtered out  
+      console.log("raffle info: ", alma); 
+      const filtered = value.data;
+      // const filtered = value.data.filter(item => item.event !== 'ADD_PRIZE');
+      data = {
+          // remove slice
+          raffles: filtered.map(accountInfo => {
+              const info = create(accountInfo, RaffleAccountInfo);
+              return { info, pubkey: pubkey };
+          }),
+      };
+      status = FetchStatus.Fetched;
     } catch (error) {
         reportError(error, { url });
         status = FetchStatus.FetchFailed;

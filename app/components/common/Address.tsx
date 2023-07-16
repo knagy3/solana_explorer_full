@@ -55,6 +55,8 @@ export function Address({
         addressLabel = overrideText;
     }
 
+    console.log("link : ", link)
+
     const content = (
         <Copyable text={address} replaceText={!alignRight}>
             <span className="font-monospace">

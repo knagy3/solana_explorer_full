@@ -5,19 +5,27 @@ import { useTransactionDetails } from '@providers/transactions';
 import { ParsedMessageAccount, PublicKey, TokenAmount, TokenBalance } from '@solana/web3.js';
 import { SignatureProps } from '@utils/index';
 import { BigNumber } from 'bignumber.js';
-import React from 'react';
+import React, { useState } from 'react';
 
 export type TokenBalanceRow = {
     account: PublicKey;
     mint: string;
     balance: TokenAmount;
+    owner: string | undefined;
     delta: BigNumber;
     accountIndex: number;
 };
 
+export type OwnerType = {
+  owner: string | undefined;
+};
+
+
+
 export function TokenBalancesCard({ signature }: SignatureProps) {
     const details = useTransactionDetails(signature);
     const { tokenRegistry } = useTokenRegistry();
+    const [owner, setOwner] = useState<OwnerType>();
 
     if (!details) {
         return null;
@@ -38,15 +46,19 @@ export function TokenBalancesCard({ signature }: SignatureProps) {
         return null;
     }
 
-    const accountRows = rows.map(({ account, delta, balance, mint }) => {
+    const accountRows = rows.map(({ account, delta, balance, owner, mint }) => {
         const key = account.toBase58() + mint;
         const units = tokenRegistry.get(mint)?.symbol || 'tokens';
-
         return (
             <tr key={key}>
                 <td>
                     <Address pubkey={account} link />
                 </td>
+                {owner &&
+                  <td>
+                    <Address pubkey={new PublicKey(owner)} link={true} raw={true} />
+                  </td>
+                }
                 <td>
                     <Address pubkey={new PublicKey(mint)} link />
                 </td>
@@ -70,6 +82,7 @@ export function TokenBalancesCard({ signature }: SignatureProps) {
                     <thead>
                         <tr>
                             <th className="text-muted">Address</th>
+                            <th className="text-muted">Owner</th>
                             <th className="text-muted">Token</th>
                             <th className="text-muted">Change</th>
                             <th className="text-muted">Post Balance</th>
@@ -93,6 +106,8 @@ export function generateTokenBalanceRows(
     preTokenBalances.forEach(balance => (preBalanceMap[balance.accountIndex] = balance));
     postTokenBalances.forEach(balance => (postBalanceMap[balance.accountIndex] = balance));
 
+    console.log("postBalanceMap: ", postBalanceMap)
+
     // Check if any pre token balances do not have corresponding
     // post token balances. If not, insert a post balance of zero
     // so that the delta is displayed properly
@@ -115,9 +130,14 @@ export function generateTokenBalanceRows(
     const rows: TokenBalanceRow[] = [];
 
     for (const index in postBalanceMap) {
-        const { uiTokenAmount, accountIndex, mint } = postBalanceMap[index];
+        const { uiTokenAmount, accountIndex, mint, owner } = postBalanceMap[index];
         const preBalance = preBalanceMap[accountIndex];
         const account = accounts[accountIndex].pubkey;
+
+
+        // if(mint.match("So1")) {
+        //   owner = mint;
+        // }
 
         if (!uiTokenAmount.uiAmountString) {
             // uiAmount deprecation
@@ -139,6 +159,7 @@ export function generateTokenBalanceRows(
                     decimals: preBalance.uiTokenAmount.decimals,
                     uiAmount: 0,
                 },
+                owner :owner,
                 delta: new BigNumber(-preBalance.uiTokenAmount.uiAmountString),
                 mint: preBalance.mint,
             });
@@ -147,6 +168,7 @@ export function generateTokenBalanceRows(
                 account: accounts[accountIndex].pubkey,
                 accountIndex,
                 balance: uiTokenAmount,
+                owner: owner,
                 delta: new BigNumber(uiTokenAmount.uiAmountString),
                 mint: mint,
             });
@@ -170,6 +192,7 @@ export function generateTokenBalanceRows(
             account,
             accountIndex,
             balance: uiTokenAmount,
+            owner,
             delta,
             mint,
         });
