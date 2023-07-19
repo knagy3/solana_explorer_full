@@ -45,7 +45,6 @@ export function RafflesProvider({ children }: ProviderProps) {
     );
 }
 
-
 async function fetchAccountRaffles(dispatch: Dispatch, pubkey: PublicKey, cluster: Cluster, url: string) {
     const key = pubkey.toBase58();
     dispatch({
@@ -63,12 +62,8 @@ async function fetchAccountRaffles(dispatch: Dispatch, pubkey: PublicKey, cluste
         userAccount: pubkey.toBase58()
       }));
 
-      const alma = await client.send(new FoxyRaffleEventsRequest({
-        prizeMint: "8j5opb6jF6Kc3ZS8uDnsbZNQRKxg7QMRBTVb6wxANcJi"
-      }));
-
       // add_prize is filtered out  
-      console.log("raffle info: ", alma); 
+      console.log("raffle account: ", value); 
       const filtered = value.data;
       // const filtered = value.data.filter(item => item.event !== 'ADD_PRIZE');
       data = {

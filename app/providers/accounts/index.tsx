@@ -37,6 +37,7 @@ import { HistoryProvider } from './history';
 import { RewardsProvider } from './rewards';
 import { TokensProvider } from './tokens';
 import { RafflesProvider } from './raffles';
+import { RaffleTransactionProvider } from './raffle-transactions';
 export { useAccountHistory } from './history';
 
 const Metadata = programs.metadata.Metadata;
@@ -177,9 +178,11 @@ export function AccountsProvider({ children }: AccountsProviderProps) {
                 <FetchersContext.Provider value={fetchers}>
                     <TokensProvider>
                         <RafflesProvider>
-                            <HistoryProvider>
-                                <RewardsProvider>{children}</RewardsProvider>
-                            </HistoryProvider>
+                            <RaffleTransactionProvider>
+                                <HistoryProvider>
+                                    <RewardsProvider>{children}</RewardsProvider>
+                                </HistoryProvider>
+                            </RaffleTransactionProvider>  
                         </RafflesProvider>
                     </TokensProvider>
                 </FetchersContext.Provider>

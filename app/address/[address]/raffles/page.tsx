@@ -9,11 +9,15 @@ type Props = Readonly<{
 
 export async function generateMetadata({ params: { address } }: Props): Promise<Metadata> {
     return {
-        description: `All tokens owned by the address ${address} on Solana`,
+        description: `All raffles owned by the address ${address} on Solana`,
         title: `Raffles | ${address} | Solana`,
     };
 }
 
 export default function OwnedRafflesPage({ params: { address } }: Props) {
-    return <RaffleTransactionHistoryCard address={address} />
+    return (
+      <>
+          <RaffleTransactionHistoryCard address={address} />
+      </>
+    );
 }

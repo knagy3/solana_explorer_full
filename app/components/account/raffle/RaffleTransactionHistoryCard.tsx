@@ -16,6 +16,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { ChevronDown } from 'react-feather';
 import Link from 'next/link';
 import { RaffleAccount } from '../../../validators/accounts/raffle';
+import { RaffleTransactionsCard } from './RaffleTransactionsCard';
 
 const ALL_FILTERS = '';
 
@@ -163,6 +164,8 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
     const hasTimestamps = filteredTransactionRows.some(element => element.blockTime);
     const detailsList: React.ReactNode[] = filteredTransactionRows.map(
         ({ signature, blockTime, statusClass, statusText, event, numberoftickets, rafflePaymentAmount, raffleAccount, pricePerTicket, prizeMint }, index) => {
+            
+
             return (
                 <tr key={index}>
                     <td>
@@ -209,6 +212,12 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
                         }
                     </td>
                     <td>
+                        {raffleAccount  
+                          ? ( <RaffleTransactionsCard address={raffleAccount} /> )
+                          : ( "-" )
+                        }
+                    </td>
+                    <td>
                         <span className={`badge bg-${statusClass}-soft`}>{statusText}</span>
                     </td>
                 </tr>
@@ -248,6 +257,7 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
                             <th className="text-muted">Payment Amount</th>
                             <th className="text-muted">NFT</th>
                             <th className="text-muted">Result</th>
+                            <th className="text-muted">Winner</th>
                         </tr>
                     </thead>
                     <tbody className="list">{detailsList}</tbody>
