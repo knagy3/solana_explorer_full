@@ -16,8 +16,8 @@ import { ChevronDown } from 'react-feather';
 import Link from 'next/link';
 import { useFetchRaffleTransactions, useRaffleTransactions } from '@/app/providers/accounts/raffle-transactions';
 
-
-export function RaffleTransactionsCard({ address }: { address: string }) {
+// It gives all the transactions for one raffle
+export function RaffleTransactionsCard({ address , price}: { address: string, price: number | null }) {
     const pubkey = useMemo(() => new PublicKey(address), [address]);
     const raffleTransactions = useRaffleTransactions(address);
     const fetchRaffleTransactions = useFetchRaffleTransactions();
@@ -34,7 +34,7 @@ export function RaffleTransactionsCard({ address }: { address: string }) {
       return [];
     }, [raffleTransactions]);
 
-    console.log("owned raffles: ", transactions)
+    // console.log("raffle transactions: ", transactions)
 
     // const filteredTransactionRows = React.useMemo(
     //   () =>
@@ -80,25 +80,39 @@ export function RaffleTransactionsCard({ address }: { address: string }) {
         if (raffleTransactions.status === FetchStatus.Fetching) {
             return <LoadingCard message="Loading history" />;
         }
-
         return <ErrorCard retry={refresh} text="Failed to fetch transaction history" />;
     }
 
-    // const hasTimestamps = transactionRows.some(element => element.blockTime);
+    let amountOfTickets = 0;
+    transactions.map(transaction => {
+      if(transaction.event === "BUY_TICKETS") {
+        if(transaction.numberoftickets) {
+          amountOfTickets += transaction.numberoftickets;
+        }
+      }
+    })
+    console.log("amount: ", transactions.at(transactions.length-1)?.numberoftickets)
 
+    // const hasTimestamps = transactionRows.some(element => element.blockTime);
     // console.log("raffle transactions: ", detailsList)
 
     return (
       <>
         <td>
-            {transactions[0].winnerAccount  
-              ? (<Signature signature={transactions[0].winnerAccount} link truncateChars={30} /> )
-              : ( "-" )
-            }
+          {amountOfTickets} / {transactions.at(transactions.length-1)?.numberoftickets}
         </td>
-        {/* <td>
-            <BalanceDelta delta={delta} isSol />
-        </td> */}
+        <td>
+          {transactions[0].winnerAccount  
+            ? (<Signature signature={transactions[0].winnerAccount} link truncateChars={30} /> )
+            : ( "-" )
+          }
+        </td>
+        <td>
+          {price
+            ? (<SolBalance lamports={amountOfTickets * price} /> )
+            : ( "-" )
+          } 
+        </td>
       </>
     );
 }

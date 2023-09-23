@@ -13,7 +13,7 @@ import {
 } from '@components/instruction/token-lending/types';
 import { isTokenSwapInstruction, parseTokenSwapInstructionTitle } from '@components/instruction/token-swap/types';
 import { useAccountHistories, useFetchAccountHistory } from '@providers/accounts/history';
-import { TOKEN_PROGRAM_ID, TokenInfoWithPubkey, useAccountOwnedTokens } from '@providers/accounts/tokens';
+import { TOKEN_PROGRAM_ID, TokenHistory, useAccountOwnedTokens, useFetchAccountOwnedTokens } from '@providers/accounts/tokens';
 import { CacheEntry, FetchStatus } from '@providers/cache';
 import { useCluster } from '@providers/cluster';
 import { useTokenRegistry } from '@providers/mints/token-registry';
@@ -27,10 +27,11 @@ import { reportError } from '@utils/sentry';
 import { displayAddress, intoTransactionInstruction } from '@utils/tx';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ChevronDown, MinusSquare, PlusSquare, RefreshCw } from 'react-feather';
 
 const TRUNCATE_TOKEN_LENGTH = 10;
+const MAX_TOKEN_NUMBER = 25;
 const ALL_TOKENS = '';
 
 type InstructionType = {
@@ -39,7 +40,15 @@ type InstructionType = {
 };
 
 export function TokenHistoryCard({ address }: { address: string }) {
+    const pubkey = useMemo(() => new PublicKey(address), [address]);
     const ownedTokens = useAccountOwnedTokens(address);
+    const fetchAccountTokens = useFetchAccountOwnedTokens();
+    const refresh = () => fetchAccountTokens(pubkey);
+    
+    // Fetch owned tokens
+    React.useEffect(() => {
+        if (!ownedTokens) refresh();
+    }, [address]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (ownedTokens === undefined ) {
         return null;
@@ -48,11 +57,15 @@ export function TokenHistoryCard({ address }: { address: string }) {
     const tokens = ownedTokens.data?.tokens;
     if (tokens === undefined || tokens.length === 0) return null;
 
-    if (tokens.length > 25) {
-        return <ErrorCard text="Token transaction history is not available for accounts with over 25 token accounts" />;
+    const filteredTokens = tokens?.filter(f => f.type === "buyNow");
+    const slicedArray = filteredTokens.slice(0, MAX_TOKEN_NUMBER);
+
+    if (slicedArray.length > MAX_TOKEN_NUMBER) {
+        const text = `Token transaction history is not available for accounts with over ${MAX_TOKEN_NUMBER} token accounts`;
+        return <ErrorCard text={text}/>;
     }
 
-    return <TokenHistoryTable tokens={tokens} />;
+    return <TokenHistoryTable tokens={slicedArray} />;
 }
 
 const useQueryFilter = (): string => {
@@ -65,12 +78,12 @@ type FilterProps = {
     filter: string;
     toggle: () => void;
     show: boolean;
-    tokens: TokenInfoWithPubkey[];
+    tokens: TokenHistory[];
 };
 
-function TokenHistoryTable({ tokens }: { tokens: TokenInfoWithPubkey[] }) {
+function TokenHistoryTable({ tokens }: { tokens: TokenHistory[] }) {
     const accountHistories = useAccountHistories();
-    const fetchAccountHistory = useFetchAccountHistory();
+    // const fetchAccountHistory = useFetchAccountHistory();
     const transactionDetailsCache = useTransactionDetailsCache();
     const [showDropdown, setDropdown] = React.useState(false);
     const filter = useQueryFilter();
@@ -81,134 +94,82 @@ function TokenHistoryTable({ tokens }: { tokens: TokenInfoWithPubkey[] }) {
                 if (filter === ALL_TOKENS) {
                     return true;
                 }
-                return token.info.mint.toBase58() === filter;
+                return token.tokenMint === filter;
             }),
         [tokens, filter]
     );
 
-    const fetchHistories = React.useCallback(
-        (refresh?: boolean) => {
-            filteredTokens.forEach(token => {
-                fetchAccountHistory(token.pubkey, refresh);
-            });
-        },
-        [filteredTokens, fetchAccountHistory]
-    );
+    console.log("Filtered tokens: ", filteredTokens)
 
-    // Fetch histories on load
-    React.useEffect(() => {
-        filteredTokens.forEach(token => {
-            const address = token.pubkey.toBase58();
-            if (!accountHistories[address]) {
-                fetchAccountHistory(token.pubkey, true);
-            }
-        });
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // const fetchHistories = React.useCallback(
+    //     (refresh?: boolean) => {
+    //         filteredTokens.forEach(token => {
+    //             fetchAccountHistory(token.buyer, refresh);
+    //         });
+    //     },
+    //     [filteredTokens, fetchAccountHistory]
+    // );
 
-    const allFoundOldest = filteredTokens.every(token => {
-        const history = accountHistories[token.pubkey.toBase58()];
-        return history?.data?.foundOldest === true;
-    });
+    // // Fetch histories on load
+    // React.useEffect(() => {
+    //     filteredTokens.forEach(token => {
+    //         const address = token.buyer;
+    //         if (!accountHistories[address]) {
+    //             fetchAccountHistory(token.buyer, true);
+    //         }
+    //     });
+    // }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const allFetchedSome = filteredTokens.every(token => {
-        const history = accountHistories[token.pubkey.toBase58()];
-        return history?.data !== undefined;
-    });
+    // const allFoundOldest = filteredTokens.every(token => {
+    //     const history = accountHistories[token.buyer];
+    //     return history?.data?.foundOldest === true;
+    // });
 
-    // Find the oldest slot which we know we have the full history for
-    let oldestSlot: number | undefined = allFoundOldest ? 0 : undefined;
+    // const allFetchedSome = filteredTokens.every(token => {
+    //     const history = accountHistories[token.buyer];
+    //     return history?.data !== undefined;
+    // });
 
-    if (!allFoundOldest && allFetchedSome) {
-        filteredTokens.forEach(token => {
-            const history = accountHistories[token.pubkey.toBase58()];
-            if (history?.data?.foundOldest === false) {
-                const earliest = history.data.fetched[history.data.fetched.length - 1].slot;
-                if (!oldestSlot) oldestSlot = earliest;
-                oldestSlot = Math.max(oldestSlot, earliest);
-            }
-        });
-    }
+    // const fetching = filteredTokens.some(token => {
+    //     const history = accountHistories[token.buyer];
+    //     return history?.status === FetchStatus.Fetching;
+    // });
 
-    const fetching = filteredTokens.some(token => {
-        const history = accountHistories[token.pubkey.toBase58()];
-        return history?.status === FetchStatus.Fetching;
-    });
+    // const failed = filteredTokens.some(token => {
+    //     const history = accountHistories[token.buyer];
+    //     return history?.status === FetchStatus.FetchFailed;
+    // });
 
-    const failed = filteredTokens.some(token => {
-        const history = accountHistories[token.pubkey.toBase58()];
-        return history?.status === FetchStatus.FetchFailed;
-    });
 
-    const sigSet = new Set();
-    const mintAndTxs = filteredTokens
-        .map(token => ({
-            history: accountHistories[token.pubkey.toBase58()],
-            mint: token.info.mint,
-        }))
-        .filter(({ history }) => {
-            return history?.data?.fetched && history.data.fetched.length > 0;
-        })
-        .flatMap(({ mint, history }) =>
-            (history?.data?.fetched as ConfirmedSignatureInfo[]).map(tx => ({
-                mint,
-                tx,
-            }))
-        )
-        .filter(({ tx }) => {
-            if (sigSet.has(tx.signature)) return false;
-            sigSet.add(tx.signature);
-            return true;
-        })
-        .filter(({ tx }) => {
-            return oldestSlot !== undefined && tx.slot >= oldestSlot;
-        });
+    // React.useEffect(() => {
+    //     if (!fetching && mintAndTxs.length < 1 && !allFoundOldest) {
+    //         fetchHistories();
+    //     }
+    // }, [fetching, , allFoundOldest, fetchHistories]);
 
-    React.useEffect(() => {
-        if (!fetching && mintAndTxs.length < 1 && !allFoundOldest) {
-            fetchHistories();
-        }
-    }, [fetching, mintAndTxs, allFoundOldest, fetchHistories]);
+    // if (mintAndTxs.length === 0) {
+    //     if (fetching) {
+    //         return <LoadingCard message="Loading history" />;
+    //     } else if (failed) {
+    //         return <ErrorCard retry={() => fetchHistories(true)} text="Failed to fetch transaction history" />;
+    //     }
+    //     return (
+    //         <ErrorCard retry={() => fetchHistories(true)} retryText="Try again" text="No transaction history found" />
+    //     );
+    // }
 
-    if (mintAndTxs.length === 0) {
-        if (fetching) {
-            return <LoadingCard message="Loading history" />;
-        } else if (failed) {
-            return <ErrorCard retry={() => fetchHistories(true)} text="Failed to fetch transaction history" />;
-        }
-        return (
-            <ErrorCard retry={() => fetchHistories(true)} retryText="Try again" text="No transaction history found" />
-        );
-    }
-
-    mintAndTxs.sort((a, b) => {
-        if (a.tx.slot > b.tx.slot) return -1;
-        if (a.tx.slot < b.tx.slot) return 1;
-        return 0;
-    });
+    // const filteredMintAndTxs = mintAndTxs.filter((item, index, array) => {
+    //   // Check if the current item's slot is different from all previous items
+    //   return array.findIndex((prevItem) => prevItem.tx.slot == item.tx.slot) === index;
+    // });
+    
+    // console.log("mintAndTxs: ", mintAndTxs);
+    // console.log("filteredData: ", filteredMintAndTxs);
 
     return (
         <div className="card">
             <div className="card-header align-items-center">
                 <h3 className="card-header-title">Token History</h3>
-                <FilterDropdown
-                    filter={filter}
-                    toggle={() => setDropdown(show => !show)}
-                    show={showDropdown}
-                    tokens={tokens}
-                ></FilterDropdown>
-                <button className="btn btn-white btn-sm" disabled={fetching} onClick={() => fetchHistories(true)}>
-                    {fetching ? (
-                        <>
-                            <span className="align-text-top spinner-grow spinner-grow-sm me-2"></span>
-                            Loading
-                        </>
-                    ) : (
-                        <>
-                            <RefreshCw className="align-text-top me-2" size={13} />
-                            Refresh
-                        </>
-                    )}
-                </button>
             </div>
 
             <div className="table-responsive mb-0">
@@ -216,315 +177,76 @@ function TokenHistoryTable({ tokens }: { tokens: TokenInfoWithPubkey[] }) {
                     <thead>
                         <tr>
                             <th className="text-muted w-1">Slot</th>
-                            <th className="text-muted">Result</th>
+                            <th className="text-muted">Price (SOL)</th>
                             <th className="text-muted">Token</th>
-                            <th className="text-muted">Instruction Type</th>
+                            <th className="text-muted">Source</th>
                             <th className="text-muted">Transaction Signature</th>
                         </tr>
                     </thead>
                     <tbody className="list">
-                        {mintAndTxs.map(({ mint, tx }) => (
+                        {filteredTokens.map(( token ) => (
                             <TokenTransactionRow
-                                key={tx.signature}
-                                mint={mint}
-                                tx={tx}
-                                details={transactionDetailsCache[tx.signature]}
+                                key={token.blockTime}
+                                slot={token.slot}
+                                tokenMint={token.tokenMint}
+                                price={token.price}
+                                signature={token.signature}
+                                source={token.source}
                             />
                         ))}
                     </tbody>
                 </table>
             </div>
-
-            <div className="card-footer">
-                {allFoundOldest ? (
-                    <div className="text-muted text-center">Fetched full history</div>
-                ) : (
-                    <button className="btn btn-primary w-100" onClick={() => fetchHistories()} disabled={fetching}>
-                        {fetching ? (
-                            <>
-                                <span className="align-text-top spinner-grow spinner-grow-sm me-2"></span>
-                                Loading
-                            </>
-                        ) : (
-                            'Load More'
-                        )}
-                    </button>
-                )}
-            </div>
         </div>
     );
 }
 
-const FilterDropdown = ({ filter, toggle, show, tokens }: FilterProps) => {
-    const { cluster } = useCluster();
-    const { tokenRegistry } = useTokenRegistry();
-    const currentSearchParams = useSearchParams();
-    const currentPathname = usePathname();
-    const buildLocation = useCallback(
-        (filter: string) => {
-            const params = new URLSearchParams(currentSearchParams?.toString());
-            if (filter === ALL_TOKENS) {
-                params.delete('filter');
-            } else {
-                params.set('filter', filter);
-            }
-            const nextQueryString = params.toString();
-            return `${currentPathname}${nextQueryString ? `?${nextQueryString}` : ''}`;
-        },
-        [currentPathname, currentSearchParams]
-    );
-
-    const filterOptions: string[] = [ALL_TOKENS];
-    const nameLookup: Map<string, string> = new Map();
-
-    tokens.forEach(token => {
-        const address = token.info.mint.toBase58();
-        if (!nameLookup.has(address)) {
-            filterOptions.push(address);
-            nameLookup.set(address, formatTokenName(address, cluster, tokenRegistry));
-        }
-    });
-
-    return (
-        <div className="dropdown me-2">
-            <small className="me-2">Filter: </small>
-            <button className="btn btn-white btn-sm " type="button" onClick={toggle}>
-                {filter === ALL_TOKENS ? 'All Tokens' : nameLookup.get(filter)}{' '}
-                <ChevronDown size={15} className="align-text-top" />
-            </button>
-            <div className={`token-filter dropdown-menu-end dropdown-menu${show ? ' show' : ''}`}>
-                {filterOptions.map(filterOption => {
-                    return (
-                        <Link
-                            key={filterOption}
-                            href={buildLocation(filterOption)}
-                            className={`dropdown-item${filterOption === filter ? ' active' : ''}`}
-                            onClick={toggle}
-                        >
-                            {filterOption === ALL_TOKENS
-                                ? 'All Tokens'
-                                : formatTokenName(filterOption, cluster, tokenRegistry)}
-                        </Link>
-                    );
-                })}
-            </div>
-        </div>
-    );
-};
 
 const TokenTransactionRow = React.memo(function TokenTransactionRow({
-    mint,
-    tx,
-    details,
+    key,
+    slot,
+    tokenMint,
+    price,
+    signature,
+    source
 }: {
-    mint: PublicKey;
-    tx: ConfirmedSignatureInfo;
-    details: CacheEntry<Details> | undefined;
+    key: number;
+    slot: number;
+    tokenMint: string;
+    price: number;
+    signature: string;
+    source: string;
 }) {
-    const fetchDetails = useFetchTransactionDetails();
-    const { cluster } = useCluster();
 
-    // Fetch details on load
-    React.useEffect(() => {
-        if (!details) fetchDetails(tx.signature);
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-    let statusText: string;
-    let statusClass: string;
-    if (tx.err) {
-        statusClass = 'warning';
-        statusText = 'Failed';
-    } else {
-        statusClass = 'success';
-        statusText = 'Success';
-    }
-
-    const transactionWithMeta = details?.data?.transactionWithMeta;
-    const instructions = transactionWithMeta?.transaction.message.instructions;
-
-    if (!instructions)
-        return (
-            <tr key={tx.signature}>
-                <td className="w-1">
-                    <Slot slot={tx.slot} link />
-                </td>
-
-                <td>
-                    <span className={`badge bg-${statusClass}-soft`}>{statusText}</span>
-                </td>
-
-                <td>
-                    <Address pubkey={mint} link truncate />
-                </td>
-
-                <td>
-                    <span className="align-text-top spinner-grow spinner-grow-sm me-2"></span>
-                    Loading
-                </td>
-
-                <td>
-                    <Signature signature={tx.signature} link truncateChars={30}/>
-                </td>
-            </tr>
-        );
-
-    let tokenInstructionNames: InstructionType[] = [];
-
-    if (transactionWithMeta) {
-        tokenInstructionNames = instructions
-            .map((ix, index): InstructionType | undefined => {
-                let name = 'Unknown';
-
-                const innerInstructions: (ParsedInstruction | PartiallyDecodedInstruction)[] = [];
-
-                if (
-                    transactionWithMeta.meta?.innerInstructions &&
-                    (cluster !== Cluster.MainnetBeta || transactionWithMeta.slot >= INNER_INSTRUCTIONS_START_SLOT)
-                ) {
-                    transactionWithMeta.meta.innerInstructions.forEach(ix => {
-                        if (ix.index === index) {
-                            ix.instructions.forEach(inner => {
-                                innerInstructions.push(inner);
-                            });
-                        }
-                    });
-                }
-
-                let transactionInstruction;
-                if (transactionWithMeta?.transaction) {
-                    transactionInstruction = intoTransactionInstruction(transactionWithMeta.transaction, ix);
-                }
-
-                if ('parsed' in ix) {
-                    if (ix.program === 'spl-token') {
-                        name = getTokenProgramInstructionName(ix, tx);
-                    } else {
-                        return undefined;
-                    }
-                } else if (transactionInstruction && isSerumInstruction(transactionInstruction)) {
-                    try {
-                        name = parseSerumInstructionTitle(transactionInstruction);
-                    } catch (error) {
-                        reportError(error, { signature: tx.signature });
-                        return undefined;
-                    }
-                } else if (transactionInstruction && isTokenSwapInstruction(transactionInstruction)) {
-                    try {
-                        name = parseTokenSwapInstructionTitle(transactionInstruction);
-                    } catch (error) {
-                        reportError(error, { signature: tx.signature });
-                        return undefined;
-                    }
-                } else if (transactionInstruction && isTokenLendingInstruction(transactionInstruction)) {
-                    try {
-                        name = parseTokenLendingInstructionTitle(transactionInstruction);
-                    } catch (error) {
-                        reportError(error, { signature: tx.signature });
-                        return undefined;
-                    }
-                } else if (transactionInstruction && isMangoInstruction(transactionInstruction)) {
-                    try {
-                        name = parseMangoInstructionTitle(transactionInstruction);
-                    } catch (error) {
-                        reportError(error, { signature: tx.signature });
-                        return undefined;
-                    }
-                } else {
-                    if (ix.accounts.findIndex(account => account.equals(TOKEN_PROGRAM_ID)) >= 0) {
-                        name = 'Unknown (Inner)';
-                    } else {
-                        return undefined;
-                    }
-                }
-
-                return {
-                    innerInstructions,
-                    name,
-                };
-            })
-            .filter(name => name !== undefined) as InstructionType[];
-    }
-
+    console.log("slot: ", tokenMint);
     return (
-        <>
-            {tokenInstructionNames.map((instructionType, index) => {
-                return (
-                    <tr key={index}>
-                        <td className="w-1">
-                            <Slot slot={tx.slot} link />
-                        </td>
-
-                        <td>
-                            <span className={`badge bg-${statusClass}-soft`}>{statusText}</span>
-                        </td>
-
-                        <td className="forced-truncate">
-                            <Address pubkey={mint} link truncateUnknown />
-                        </td>
-
-                        <td>
-                            <InstructionDetails instructionType={instructionType} tx={tx} />
-                        </td>
-
-                        <td className="forced-truncate">
-                            <Signature signature={tx.signature} link truncateChars={30} />
-                        </td>
-                    </tr>
-                );
-            })}
-        </>
+        <tr key={key}>
+            <td className="w-1">
+                <Slot slot={slot} link />
+            </td>
+            <td>
+                {price}
+            </td>
+            <td>
+                <Signature signature={tokenMint} link truncateChars={30}/>
+            </td>
+            <td>
+                {source}
+            </td>
+            <td>
+                <Signature signature={signature} link truncateChars={30}/>
+            </td>
+        </tr>
     );
 });
 
-function InstructionDetails({ instructionType, tx }: { instructionType: InstructionType; tx: ConfirmedSignatureInfo }) {
-    const [expanded, setExpanded] = React.useState(false);
 
-    const instructionTypes = instructionType.innerInstructions
-        .map(ix => {
-            if ('parsed' in ix && ix.program === 'spl-token') {
-                return getTokenProgramInstructionName(ix, tx);
-            }
-            return undefined;
-        })
-        .filter(type => type !== undefined);
+// function formatTokenName(pubkey: string, cluster: Cluster, tokenRegistry: TokenInfoMap): string {
+//     let display = displayAddress(pubkey, cluster, tokenRegistry);
 
-    return (
-        <>
-            <p className="tree">
-                {instructionTypes.length > 0 && (
-                    <span
-                        onClick={e => {
-                            e.preventDefault();
-                            setExpanded(!expanded);
-                        }}
-                        className="c-pointer me-2"
-                    >
-                        {expanded ? (
-                            <MinusSquare className="align-text-top" size={13} />
-                        ) : (
-                            <PlusSquare className="align-text-top" size={13} />
-                        )}
-                    </span>
-                )}
-                {instructionType.name}
-            </p>
-            {expanded && (
-                <ul className="tree">
-                    {instructionTypes.map((type, index) => {
-                        return <li key={index}>{type}</li>;
-                    })}
-                </ul>
-            )}
-        </>
-    );
-}
+//     if (display === pubkey) {
+//         display = display.slice(0, TRUNCATE_TOKEN_LENGTH) + '\u2026';
+//     }
 
-function formatTokenName(pubkey: string, cluster: Cluster, tokenRegistry: TokenInfoMap): string {
-    let display = displayAddress(pubkey, cluster, tokenRegistry);
-
-    if (display === pubkey) {
-        display = display.slice(0, TRUNCATE_TOKEN_LENGTH) + '\u2026';
-    }
-
-    return display;
-}
+//     return display;
+// }

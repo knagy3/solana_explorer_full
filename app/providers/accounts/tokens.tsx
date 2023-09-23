@@ -11,13 +11,24 @@ import React from 'react';
 import { create } from 'superstruct';
 import { Token } from '@solana/spl-token';
 
-export type TokenInfoWithPubkey = {
-    info: TokenAccountInfo;
-    pubkey: PublicKey;
+export type TokenHistory = {
+    blockTime: number;
+    buyer: string;
+    buyerReferral : string;
+    collection : string;
+    collectionSymbol: string;
+    price : number;
+    seller : string;
+    sellerReferral : string;
+    signature : string;
+    slot : number;
+    source : string;
+    tokenMint : string;
+    type : string;
 };
 
 interface AccountTokens {
-    tokens?: TokenInfoWithPubkey[];
+    tokens?: TokenHistory[];
 }
 
 type State = Cache.State<AccountTokens>;
@@ -55,18 +66,31 @@ async function fetchAccountTokens(dispatch: Dispatch, pubkey: PublicKey, cluster
 
     let status;
     let data;
+    const options = { method: 'GET', headers: { accept: 'application/json' } };
+
     try {
-        const { value } = await new Connection(url).getParsedTokenAccountsByOwner(pubkey, {
-            programId: TOKEN_PROGRAM_ID,
-        });
+
+        const response = await fetch('https://api-mainnet.magiceden.dev/v2/wallets/GRBgXmhy8mViabhu7PW83YsLciYwDH9A8tD4FKe4T3SE/activities?limit=200', options);
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const data2 = await response.json();
+
+        // const { value } = await new Connection(url).getParsedTokenAccountsByOwner(pubkey, {
+        //     programId: TOKEN_PROGRAM_ID,
+        // });
         data = {
             // remove slice
 
-            tokens: value.slice(0, 101).map(accountInfo => {
-                const parsedInfo = accountInfo.account.data.parsed.info;
-                const info = create(parsedInfo, TokenAccountInfo);
-                return { info, pubkey: accountInfo.pubkey };
-            }),
+            tokens: data2
+
+            // tokens: value.slice(0, 101).map(accountInfo => {
+            //     const parsedInfo = accountInfo.account.data.parsed.info;
+            //     const info = create(parsedInfo, TokenAccountInfo);
+            //     return { info, pubkey: accountInfo.pubkey };
+            // }),
         };
         status = FetchStatus.Fetched;
     } catch (error) {

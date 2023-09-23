@@ -10,7 +10,6 @@ import { RaffleAccountInfo } from '@validators/accounts/raffle';
 import React from 'react';
 import { create } from 'superstruct';
 import { RestClient, FoxyRaffleEventsRequest } from "@hellomoon/api";
-import { valueEventAriaMessage } from 'react-select/src/accessibility';
 
 export const MOON_CLIENT_ID = "cc2bdbaf-640d-455e-8094-4adbe147fc3d";
 
@@ -62,13 +61,9 @@ async function fetchRaffleTransactions(dispatch: Dispatch, pubkey: PublicKey, cl
       raffleAccount: pubkey.toBase58()
     }));
 
-    // add_prize is filtered out  
-    console.log("raffle tramsactions: ", value); 
-    const filtered = value.data;
-    // const filtered = value.data.filter(item => item.event !== 'ADD_PRIZE');
     data = {
         // remove slice
-        raffleAccount: filtered.map(accountInfo => {
+        raffleAccount: value.data.map(accountInfo => {
             const info = create(accountInfo, RaffleAccountInfo);
             return { info, pubkey: pubkey };
         }),

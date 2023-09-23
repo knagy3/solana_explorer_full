@@ -4,7 +4,7 @@ import { Address } from '@components/common/Address';
 import { ErrorCard } from '@components/common/ErrorCard';
 import { Identicon } from '@components/common/Identicon';
 import { LoadingCard } from '@components/common/LoadingCard';
-import { TokenInfoWithPubkey, useAccountOwnedTokens, useFetchAccountOwnedTokens } from '@providers/accounts/tokens';
+import { TokenHistory, useAccountOwnedTokens, useFetchAccountOwnedTokens } from '@providers/accounts/tokens';
 import { FetchStatus } from '@providers/cache';
 import { useTokenRegistry } from '@providers/mints/token-registry';
 import { PublicKey } from '@solana/web3.js';
@@ -18,6 +18,7 @@ import { ChevronDown } from 'react-feather';
 type Display = 'summary' | 'detail' | null;
 
 const SMALL_IDENTICON_WIDTH = 16;
+const MAX_TOKEN_NUMBER = 100;
 
 const useQueryDisplay = (): Display => {
     const searchParams = useSearchParams();
@@ -59,12 +60,10 @@ export function OwnedTokensCard({ address }: { address: string }) {
         return <ErrorCard retry={refresh} retryText="Try Again" text={'No token holdings found'} />;
     }
 
-    const filteredTokens = tokens?.filter(f => f.info.tokenAmount.amount === "1")
+    const filteredTokens = tokens?.filter(f => f.type === "buyNow")
 
-    console.log("filteredTokens: ", filteredTokens);
-
-    if (filteredTokens.length > 100) {
-        return <ErrorCard text="Token holdings is not available for accounts with over 100 token accounts" />;
+    if (filteredTokens.length > MAX_TOKEN_NUMBER) {
+        return <ErrorCard text="Token holdings is not available for accounts with over {MAX_TOKEN_NUMBER} token accounts" />;
     }
 
     return (
@@ -86,13 +85,13 @@ export function OwnedTokensCard({ address }: { address: string }) {
     );
 }
 
-function HoldingsDetailTable({ tokens }: { tokens: TokenInfoWithPubkey[] }) {
+function HoldingsDetailTable({ tokens }: { tokens: TokenHistory[] }) {
     const detailsList: React.ReactNode[] = [];
     const { tokenRegistry } = useTokenRegistry();
-    const showLogos = tokens.some(t => tokenRegistry.get(t.info.mint.toBase58())?.logoURI !== undefined);
+    const showLogos = tokens.some(t => tokenRegistry.get(t.tokenMint)?.logoURI !== undefined);
     tokens.forEach(tokenAccount => {
-        const address = tokenAccount.pubkey.toBase58();
-        const mintAddress = tokenAccount.info.mint.toBase58();
+        const address = tokenAccount.buyer;
+        const mintAddress = tokenAccount.tokenMint;
         const tokenDetails = tokenRegistry.get(mintAddress);
         detailsList.push(
             <tr key={address}>
@@ -116,13 +115,15 @@ function HoldingsDetailTable({ tokens }: { tokens: TokenInfoWithPubkey[] }) {
                     </td>
                 )}
                 <td>
-                    <Address pubkey={tokenAccount.pubkey} link truncate />
+                    {/* <Address pubkey={tokenAccount.buyer} link truncate /> */}
+                    {tokenAccount.buyer}
                 </td>
                 <td>
-                    <Address pubkey={tokenAccount.info.mint} link truncate />
+                    {/* <Address pubkey={tokenAccount.tokenMint} link truncate /> */}
+                    {tokenAccount.tokenMint}
                 </td>
                 <td>
-                    {tokenAccount.info.tokenAmount.uiAmountString} {tokenDetails && tokenDetails.symbol}
+                    {1}
                 </td>
             </tr>
         );
@@ -145,23 +146,20 @@ function HoldingsDetailTable({ tokens }: { tokens: TokenInfoWithPubkey[] }) {
     );
 }
 
-function HoldingsSummaryTable({ tokens }: { tokens: TokenInfoWithPubkey[] }) {
+function HoldingsSummaryTable({ tokens }: { tokens: TokenHistory[] }) {
     const { tokenRegistry } = useTokenRegistry();
     const mappedTokens = new Map<string, string>();
-    for (const { info: token } of tokens) {
-        const mintAddress = token.mint.toBase58();
+    for (const token  of tokens) {
+        const mintAddress = token.tokenMint;
         const totalByMint = mappedTokens.get(mintAddress);
 
-        let amount = token.tokenAmount.uiAmountString;
-        if (totalByMint !== undefined) {
-            amount = new BigNumber(totalByMint).plus(token.tokenAmount.uiAmountString).toString();
-        }
+        let amount = "1";
 
         mappedTokens.set(mintAddress, amount);
     }
 
     const detailsList: React.ReactNode[] = [];
-    const showLogos = tokens.some(t => tokenRegistry.get(t.info.mint.toBase58())?.logoURI !== undefined);
+    const showLogos = tokens.some(t => tokenRegistry.get(t.tokenMint)?.logoURI !== undefined);
     mappedTokens.forEach((totalByMint, mintAddress) => {
         const tokenDetails = tokenRegistry.get(mintAddress);
         detailsList.push(

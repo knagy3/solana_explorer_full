@@ -165,6 +165,11 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
     const detailsList: React.ReactNode[] = filteredTransactionRows.map(
         ({ signature, blockTime, statusClass, statusText, event, numberoftickets, rafflePaymentAmount, raffleAccount, pricePerTicket, prizeMint }, index) => {
             
+            const finalPricePerTicket = pricePerTicket
+              ? pricePerTicket
+              : rafflePaymentAmount && numberoftickets
+                ? rafflePaymentAmount / numberoftickets
+                : null
 
             return (
                 <tr key={index}>
@@ -191,8 +196,8 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
                         {event}
                     </td>
                     <td className="text-lg-center text-uppercase">
-                        {pricePerTicket  
-                          ? (<SolBalance lamports={pricePerTicket} /> )
+                        {finalPricePerTicket
+                          ? (<SolBalance lamports={finalPricePerTicket} /> )
                           : ( "-" )
                         }
                     </td>
@@ -211,12 +216,12 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
                           : ( "-" )
                         }
                     </td>
-                    <td>
+                    {/* <td> */}
                         {raffleAccount  
-                          ? ( <RaffleTransactionsCard address={raffleAccount} /> )
+                          ? ( <RaffleTransactionsCard address={raffleAccount} price={finalPricePerTicket}/> )
                           : ( "-" )
                         }
-                    </td>
+                    {/* </td> */}
                     <td>
                         <span className={`badge bg-${statusClass}-soft`}>{statusText}</span>
                     </td>
@@ -253,11 +258,13 @@ export function RaffleTransactionHistoryCard({ address }: { address: string }) {
                             )}
                             <th className="text-muted">Event</th>
                             <th className="text-muted">Price Per Tickets</th>
-                            <th className="text-muted">Number of Tickets</th>
+                            <th className="text-muted">Bought Tickets</th>
                             <th className="text-muted">Payment Amount</th>
                             <th className="text-muted">NFT</th>
-                            <th className="text-muted">Result</th>
+                            <th className="text-muted">Sold Tickets</th>
                             <th className="text-muted">Winner</th>
+                            <th className="text-muted">Purchase Price</th>
+                            <th className="text-muted">Result</th>
                         </tr>
                     </thead>
                     <tbody className="list">{detailsList}</tbody>

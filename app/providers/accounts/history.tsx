@@ -15,8 +15,8 @@ import { Cluster } from '@utils/cluster';
 import { reportError } from '@utils/sentry';
 import React from 'react';
 
-const MAX_TRANSACTION_BATCH_SIZE = 15;
-const PROMGRAM_ID = "9ehXDD5bnhSpFVRf99veikjgq8VajtRH7e3D9aVPLqYd";
+const MAX_TRANSACTION_BATCH_SIZE = 25;
+const PROMGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 
 type TransactionMap = Map<string, ParsedTransactionWithMeta>;
 
@@ -228,7 +228,6 @@ export function useFetchAccountHistory() {
             const before = state.entries[pubkey.toBase58()];
             if (!refresh && before?.data?.fetched && before.data.fetched.length > 0) 
             {
-                console.log("HELLLO")
                 if (before.data.foundOldest) return;
 
                 let additionalSignatures: string[] = [];

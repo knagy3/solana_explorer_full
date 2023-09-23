@@ -19,7 +19,7 @@ export default function OwnedTokensPage({ params: { address } }: Props) {
     return (
         <>
             <TokenHistoryCard address={address} />
-            <OwnedTokensCard address={address} />
+            {/* <OwnedTokensCard address={address} /> */}
         </>
     );
 }
