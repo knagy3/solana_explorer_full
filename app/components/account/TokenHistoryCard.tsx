@@ -29,6 +29,8 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import React, { useCallback, useMemo } from 'react';
 import { ChevronDown, MinusSquare, PlusSquare, RefreshCw } from 'react-feather';
+import { Timestamp } from '../../providers/transactions/index';
+import { displayTimestampUtc } from '@/app/utils/date';
 
 const TRUNCATE_TOKEN_LENGTH = 10;
 const MAX_TOKEN_NUMBER = 25;
@@ -177,6 +179,7 @@ function TokenHistoryTable({ tokens }: { tokens: TokenHistory[] }) {
                     <thead>
                         <tr>
                             <th className="text-muted w-1">Slot</th>
+                            <th className="text-muted w-1">Timestamp</th>
                             <th className="text-muted">Price (SOL)</th>
                             <th className="text-muted">Token</th>
                             <th className="text-muted">Source</th>
@@ -184,10 +187,11 @@ function TokenHistoryTable({ tokens }: { tokens: TokenHistory[] }) {
                         </tr>
                     </thead>
                     <tbody className="list">
-                        {filteredTokens.map(( token ) => (
+                        {filteredTokens.map(( token, index ) => (
                             <TokenTransactionRow
-                                key={token.blockTime}
+                                key={index}
                                 slot={token.slot}
+                                timestamp={token.blockTime}
                                 tokenMint={token.tokenMint}
                                 price={token.price}
                                 signature={token.signature}
@@ -205,6 +209,7 @@ function TokenHistoryTable({ tokens }: { tokens: TokenHistory[] }) {
 const TokenTransactionRow = React.memo(function TokenTransactionRow({
     key,
     slot,
+    timestamp,
     tokenMint,
     price,
     signature,
@@ -212,17 +217,20 @@ const TokenTransactionRow = React.memo(function TokenTransactionRow({
 }: {
     key: number;
     slot: number;
+    timestamp: number,
     tokenMint: string;
     price: number;
     signature: string;
     source: string;
 }) {
 
-    console.log("slot: ", tokenMint);
     return (
         <tr key={key}>
             <td className="w-1">
                 <Slot slot={slot} link />
+            </td>
+            <td className="text-muted">
+                {timestamp ? displayTimestampUtc(timestamp * 1000, true) : '---'}
             </td>
             <td>
                 {price}
